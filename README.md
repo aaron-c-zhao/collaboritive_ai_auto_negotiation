@@ -17,3 +17,16 @@
     * Intellij should recognise and add the newly added module as a dependency when the POM is configured correctly.
 3. Run the simplerunner in debug mode, it will stop at the bps set in the party module.
    
+### How to use BOA as a dependency?
+
+1. install (copy and paste) the folder [/boa](jars) into your local maven .m2 repository. 
+ * For windows user, .m2 should be under the path C:/Users/<your user name>/.m2
+ * for Linux/Mac users, use find command to locate the .m2 directory
+
+2. Implement the bidding strategy, acceptance strategy and opponent modelling by inherit from 
+corresponding interfaces BiddingStrategy, AcceptanceStrategy and OpponentModel.
+   * Note here: BiddingStrategy and AcceptanceStrategy interface exist in the BOA repository,
+    you can access it by importing from geniusweb.boa.XXXX; OpponentModel exists in the Opponentmodel
+     repository, access it by importing from geniusweb.opponentmodel.XXXX.
+3. return the strategy objects in the methods getOpponentModel, getBiddingStrategy,
+   getAccceptanceStrategy in the Group42Party class.
