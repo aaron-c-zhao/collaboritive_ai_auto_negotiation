@@ -20,7 +20,7 @@
 ### How to use BOA as a dependency?
 
 1. install (copy and paste) the folder [/boa](jars) into your local maven .m2 repository. 
- * For windows user, .m2 should be under the path C:/Users/<your user name>/.m2
+ * For windows user, .m2 should be under the path C:/Users/\<your user name\>/.m2
  * for Linux/Mac users, use find command to locate the .m2 directory
 
 2. Implement the bidding strategy, acceptance strategy and opponent modelling by inherit from 

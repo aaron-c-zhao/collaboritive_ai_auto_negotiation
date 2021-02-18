@@ -11,22 +11,10 @@ import tudelft.utilities.logging.Reporter;
 import geniusweb.boa.DefaultBoa;
 
 /**
- * A simple party that places random bids and accepts when it receives an offer
- * with sufficient utility.
- * <h2>parameters</h2>
- * <table >
- * <caption>parameters</caption>
- * <tr>
- * <td>minPower</td>
- * <td>This value is used as minPower for placed {@link Vote}s. Default value is
- * 2.</td>
- * </tr>
- * <tr>
- * <td>maxPower</td>
- * <td>This value is used as maxPower for placed {@link Vote}s. Default value is
- * infinity.</td>
- * </tr>
- * </table>
+ * An implementation of the BOA party in negotiation. The party only supports SOAP protocol, and is only capable of
+ * bilateral negotiations. Each negotiation session is expected to last for 200 rounds.
+ *
+ * This is a hardcoded BOA client, no settings file required. 
  */
 public class Group42Party extends DefaultBoa {
 
