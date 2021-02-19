@@ -1,7 +1,6 @@
 package collabai.group42;
 
 
-import geniusweb.actions.Vote;
 import geniusweb.boa.InstantiationFailedException;
 import geniusweb.boa.acceptancestrategy.AcceptanceStrategy;
 import geniusweb.boa.biddingstrategy.BiddingStrategy;
@@ -14,7 +13,7 @@ import geniusweb.boa.DefaultBoa;
  * An implementation of the BOA party in negotiation. The party only supports SOAP protocol, and is only capable of
  * bilateral negotiations. Each negotiation session is expected to last for 200 rounds.
  *
- * This is a hardcoded BOA client, no settings file required. 
+ * This is a hardcoded BOA client, no settings file required.
  */
 public class Group42Party extends DefaultBoa {
 
