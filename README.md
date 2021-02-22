@@ -30,3 +30,4 @@ corresponding interfaces BiddingStrategy, AcceptanceStrategy and OpponentModel.
      repository, access it by importing from geniusweb.opponentmodel.XXXX.
 3. return the strategy objects in the methods getOpponentModel, getBiddingStrategy,
    getAccceptanceStrategy in the Group42Party class.
+   
