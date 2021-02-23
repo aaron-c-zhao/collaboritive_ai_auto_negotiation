@@ -19,5 +19,5 @@ Build:
 Test:
   stage: test
   script:
-    -mvn test
+    - mvn test
   allow_failure: false
