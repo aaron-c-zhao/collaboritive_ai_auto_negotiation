@@ -2,11 +2,11 @@ package collabai.group42.biddingStrategy;
 
 import geniusweb.actions.Accept;
 import geniusweb.actions.Action;
+import geniusweb.actions.EndNegotiation;
 import geniusweb.actions.Offer;
 import geniusweb.actions.PartyId;
 import geniusweb.boa.BoaState;
 import geniusweb.boa.biddingstrategy.BiddingStrategy;
-import geniusweb.boa.biddingstrategy.ExtendedUtilSpace;
 import geniusweb.issuevalue.Bid;
 import geniusweb.profile.Profile;
 import geniusweb.profile.utilityspace.LinearAdditive;
@@ -46,7 +46,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
             recentBids.add(new ArrayList<>(Arrays.asList(prevUtility, getUtility(lastBid))));
         else if (recentBids.size() == 10) {
             recentBids.remove();
-            recentBids.add(Arrays.asList(prevUtility, getUtility(lastBid))));
+            recentBids.add(Arrays.asList(prevUtility, getUtility(lastBid)));
         }
 
         prevUtility = targetUtility;
@@ -54,30 +54,48 @@ public class Group42BiddingStrategy implements BiddingStrategy{
         ImmutableList<Bid> bidOptions = bidSpace
                 .getBids((BigDecimal.valueOf(targetUtility)));
 
-        // TODO: Use opponentmodel to find the most beneficial bid wrt the opponent in the same
-        //       utility level
         if (bidOptions.size().intValue() == 0) {
             // should not happen, emergency exit
             boaState.getReporter().log(Level.WARNING,
-                    "No viable bids found around current utility target");
-            // TODO: replace this behavior with randomizing the utility
+                    "No viable bids found at target utility: " + targetUtility);
 
-            return new Accept(me, lastBid);
+            // try target utility plus a randomized value in [-0.05, 0.05]
+            for (int i = 0; i < 10 && bidOptions.size().intValue() == 0; i++) {
+                bidOptions = bidSpace.getBids(BigDecimal.valueOf(targetUtility
+                        + (ThreadLocalRandom.current().nextDouble() - 0.5) / 10));
+            }
+            boaState.getReporter().log(Level.WARNING,
+                    "No viable bids found after 10 attempts.");
+
+            // no success after 10 more attempts then either accept or walk away
+            if (lastBid != null)
+                return new Accept(me, lastBid);
+            return new EndNegotiation(me);
         }
-        Bid pickedBid = bidOptions.get(ThreadLocalRandom.current()
-                .nextInt(bidOptions.size().intValue()));
-        return new Offer(me, pickedBid);
+
+        // pick the most beneficial bid from the opponent's perspective
+        double maxUtility = 0.0;
+        long maxIndex = 0;
+        for (int i = 0; i < bidOptions.size().intValue() && i < 10; i++) {
+            long index = ThreadLocalRandom.current()
+                    .nextInt(bidOptions.size().intValue());
+            double utility = getOpponentUtility(bidOptions.get(index));
+            if (maxUtility < utility) {
+                maxUtility = utility;
+                maxIndex = index;
+            }
+        }
+        return new Offer(me, bidOptions.get(maxIndex));
     }
 
     /**
      * Calculate the utility of certain bid wrt the party itself.
      *
-     * @param lastBid the opponent's last bid.
+     * @param bid the opponent's last bid.
      * @return This party's utility gained with opponent's bid.
-     * TODO: implement this method
      */
-    private double getUtility(Bid lastBid) {
-        return 0.0;
+    private double getUtility(Bid bid) {
+        return bidSpace.getUtility(bid);
     }
 
     /**
@@ -118,10 +136,9 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      * reservation value, 0 is returned.
      *
      * @return The minimum acceptable utility value.
-     * TODO: implement this method
      */
     private double getMin() {
-        return 0.0;
+        return bidSpace.getMin().doubleValue();
     }
 
     /**
@@ -206,8 +223,9 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      *
      * @return Estimated utility value of last bid from opponent model.
      * TODO: call the actual API from opponent model
+     * @param pickedBid
      */
-    private double getOpponentUtility() {
+    private double getOpponentUtility(Bid pickedBid) {
         return 0.0;
     }
 
