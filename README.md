@@ -8,11 +8,32 @@
 
 ### Bidding Strategy
 
-f(t)= 1 - (t - 0.1)^a with a = 4
-![time function](./images/time_function_graph.png)
+Based on time dependent bidding strategy like Boulware or conceder, inspired by Hard-headed,
+the bidding strategy of agent group42 is composed as following:
+1. In the first phase of the bidding, it behaves like a conceder which concedes at a constant rate util
+the utility reaches 0.9. The purpose of this phase is to learn the opponent's behavior pattern.
+   
+2. In the second phase, based on the 10 most recent opponent's bids, by applying linear regression analysis,
+the agent tries to calculate the 'niceness' of opponent. The niceness is a coefficient that is normalised to [0, 1], 
+which entails how tough is the opponent playing.
+   
+3. After the niceness has been retrieved, it's plugged in to the following formula: 
+f(t) = 0.9 - (t - (0.05 + 0.2 * niceness)) ^ 3.0, where t is the progress. Thus, the niceness of the opponent affects
+the inflection point of the concession curve. 
+   
+4. In the third phase, instead of using the niceness to decide when to concede, the niceness is used to 
+decide how fast it concedes. The influence can be seen in the following pictures:
+   
+![time function](./images/concession_curve_1.png)
+   
+![time_function](./images/concession_curve_2.png)
 
 
-
+5. The last phase covers only the last round. If no agreement has been achieved, then the agent will accept anything
+above the reservation value.
+   
+6. The strategy plays tough against nice opponent, and play nicer against really tough opponent. It's intention is to 
+secure as many agreements as possible with possibly higher utility. 
 
 ## FAQ
 
