@@ -1,0 +1,23 @@
+image: maven:3.6.3-jdk-8
+
+cache:
+  paths:
+    - .m2/
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2"
+
+stages:
+  - build
+  - test
+
+Build:
+  stage: build
+  script:
+    - mvn compile
+
+Test:
+  stage: test
+  script:
+    -mvn test
+  allow_failure: false
