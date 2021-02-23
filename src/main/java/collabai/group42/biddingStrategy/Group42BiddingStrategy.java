@@ -94,7 +94,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      * @param bid the opponent's last bid.
      * @return This party's utility gained with opponent's bid.
      */
-    private double getUtility(Bid bid) {
+    protected double getUtility(Bid bid) {
         return bidSpace.getUtility(bid);
     }
 
@@ -110,7 +110,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      * @param progress Current progress wrt the total rounds
      * @return The intended utility for the next bid
      */
-    private double getTargetUtility(Double progress) {
+    protected double getTargetUtility(Double progress) {
         if (progress < 0.1) {
             return 1 - progress;
         }
@@ -137,7 +137,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      *
      * @return The minimum acceptable utility value.
      */
-    private double getMin() {
+    protected double getMin() {
         return bidSpace.getMin().doubleValue();
     }
 
@@ -153,13 +153,13 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      * @return
      */
     private double getTimeDependUtility(Double progress) {
-        return 0.9 - Math.pow((progress - this.b), this.a);
+        return 0.9 - Math.pow((progress - getB()), getA());
     }
 
     /**
      * Set the coefficient b which affects the conceding rate in phase 2.
      */
-    private void setB() {
+    protected void setB() {
         double niceness = getNiceness();
         this.b =  0.05 + 0.2 * niceness;
     }
@@ -169,7 +169,16 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      */
     protected void setA() {
         double niceness = getNiceness();
-        this.a = 2 + 3 * niceness;
+        this.a = 2.0 + 3.0 * niceness;
+    }
+
+
+    protected double getB() {
+        return this.b;
+    }
+
+    protected double getA() {
+        return this.a;
     }
 
     /**
@@ -185,9 +194,9 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      *
      * @return the niceness of opponents which should be normalized into a range of [0, 1]
      */
-    private double getNiceness() {
+    protected double getNiceness() {
         SimpleRegression regression = new SimpleRegression();
-        for (List<Double> point: recentBids) {
+        for (List<Double> point: getRecentBids()) {
             regression.addData(point.get(0), point.get(1));
         }
         double slope = regression.getSlope();
@@ -197,6 +206,10 @@ public class Group42BiddingStrategy implements BiddingStrategy{
         slope = (slope > Math.PI / minToughness)? 1.0 : slope;
         slope = (slope - minToughness) / (maxToughness - minToughness);
         return slope;
+    }
+
+    protected LinkedList<List<Double>> getRecentBids() {
+        return this.recentBids;
     }
 
     private void init(BoaState boaState) {
@@ -221,9 +234,10 @@ public class Group42BiddingStrategy implements BiddingStrategy{
     /**
      * Wrapper method. Enable testing bidding strategy with various opponent behavior.
      *
+     * @param pickedBid bid that the opponent model will evaluate against
+     *
      * @return Estimated utility value of last bid from opponent model.
      * TODO: call the actual API from opponent model
-     * @param pickedBid
      */
     private double getOpponentUtility(Bid pickedBid) {
         return 0.0;
@@ -233,7 +247,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      * @return the most recent bid that was offered, or null if no offer has
      *         been done yet.
      */
-    private Bid getLastBid(List<Action> history) {
+    protected Bid getLastBid(List<Action> history) {
         for (int n = history.size() - 1; n >= 0; n--) {
             Action action = history.get(n);
             if (action instanceof Offer) {
@@ -243,5 +257,13 @@ public class Group42BiddingStrategy implements BiddingStrategy{
         return null;
     }
 
+    /**
+     * For testing purpose.
+     *
+     * @return the bidspace.
+     */
+    protected ExtendedUtilSpace getBidSpace() {
+        return this.bidSpace;
+    }
 
 }

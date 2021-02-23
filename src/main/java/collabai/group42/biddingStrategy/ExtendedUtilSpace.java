@@ -110,5 +110,14 @@ public class ExtendedUtilSpace {
 		return utilspace.getUtility(bid).doubleValue();
 	}
 
+	/**
+	 * For testing purpose.
+	 *
+	 * @return reservation bid.
+	 */
+	protected Bid getRvBid() {
+		return utilspace.getReservationBid();
+	}
+
 
 }
