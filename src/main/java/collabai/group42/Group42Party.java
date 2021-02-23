@@ -1,6 +1,9 @@
 package collabai.group42;
 
 
+import collabai.group42.biddingStrategy.Group42BiddingStrategy;
+import geniusweb.actions.Action;
+import geniusweb.boa.BoaState;
 import geniusweb.boa.InstantiationFailedException;
 import geniusweb.boa.acceptancestrategy.AcceptanceStrategy;
 import geniusweb.boa.biddingstrategy.BiddingStrategy;
@@ -32,7 +35,7 @@ public class Group42Party extends DefaultBoa {
 
 	@Override
 	protected BiddingStrategy getBiddingStrategy(Settings settings) throws InstantiationFailedException {
-		return null;
+		return new Group42BiddingStrategy();
 	}
 
 	@Override
