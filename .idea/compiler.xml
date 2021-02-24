@@ -6,13 +6,15 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="collabai.group42" />
         <module name="cai-group-42-negotiation" />
+        <module name="collabai.group42" />
+        <module name="group42party" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="cai-group-42-negotiation" target="1.8" />
       <module name="collabai.group42" target="1.8" />
+      <module name="group42party" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
