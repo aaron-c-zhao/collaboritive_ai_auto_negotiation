@@ -24,12 +24,16 @@
 			<id>artifactory.ewi.tudelft.nl</id>
 			<url>http://artifactory.ewi.tudelft.nl/artifactory/libs-release</url>
 		</repository>
+
 	</distributionManagement>
 
 
 	<dependencies>
-
-
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
+			<version>3.6.1</version>
+		</dependency>
 		<dependency>
 			<groupId>geniusweb</groupId>
 			<artifactId>party</artifactId>
