@@ -6,11 +6,11 @@ import geniusweb.issuevalue.Bid;
 import geniusweb.profile.utilityspace.UtilitySpace;
 
 public class TimeAcceptanceStrategy implements AcceptanceStrategy {
-    //https://homepages.cwi.nl/~baarslag/pub/Acceptance_conditions_in_automated_negotiation.pdf
-    @Override
-    public Boolean isAcceptable(Bid bid, BoaState state) {
+    private final double T = 0.92;
+@Override
+public Boolean isAcceptable(Bid bid, BoaState state) {
         double progress = state.getProgress().get(System.currentTimeMillis());
-        return (progress > 1 - 0.000001);
-    }
+        return (progress > T - 0.000001);
+        }
 
-}
+        }
