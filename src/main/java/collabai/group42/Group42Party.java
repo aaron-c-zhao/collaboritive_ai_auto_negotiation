@@ -1,10 +1,15 @@
 package collabai.group42;
 
 
+import collabai.group42.opponent.MyFrequencyOpponentModel;
+import geniusweb.boa.InstantiationFailedException;
 import collabai.group42.biddingStrategy.Group42BiddingStrategy;
 import geniusweb.boa.acceptancestrategy.AcceptanceStrategy;
+import geniusweb.boa.acceptancestrategy.TimeDependentAcceptanceStrategy;
 import geniusweb.boa.biddingstrategy.BiddingStrategy;
+import geniusweb.boa.biddingstrategy.TimeDependentBiddingStrategy;
 import geniusweb.inform.Settings;
+import geniusweb.opponentmodel.FrequencyOpponentModel;
 import geniusweb.opponentmodel.OpponentModel;
 import tudelft.utilities.logging.Reporter;
 import geniusweb.boa.DefaultBoa;
@@ -26,8 +31,8 @@ public class Group42Party extends DefaultBoa {
 	}
 
 	@Override
-	protected Class<? extends OpponentModel> getOpponentModel(Settings settings) {
-		return null;
+	protected Class<? extends OpponentModel> getOpponentModel(Settings settings) throws InstantiationFailedException {
+		return MyFrequencyOpponentModel.class;
 	}
 
 	@Override
@@ -36,8 +41,8 @@ public class Group42Party extends DefaultBoa {
 	}
 
 	@Override
-	protected AcceptanceStrategy getAccceptanceStrategy(Settings settings) {
-		return null;
+	protected AcceptanceStrategy getAccceptanceStrategy(Settings settings) throws InstantiationFailedException {
+		return new TimeDependentAcceptanceStrategy();
 	}
 
 
