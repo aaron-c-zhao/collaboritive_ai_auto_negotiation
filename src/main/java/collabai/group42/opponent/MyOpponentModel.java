@@ -9,6 +9,8 @@ import geniusweb.profile.utilityspace.UtilitySpace;
 import geniusweb.progress.Progress;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MyOpponentModel implements UtilitySpace, OpponentModel {
 
@@ -18,11 +20,14 @@ public class MyOpponentModel implements UtilitySpace, OpponentModel {
     private final Domain domain;
     private final Bid resBid;
 
+    private final List<Bid> bidHistory;
+
     public MyOpponentModel() {
         this.domain = null;
         this.resBid = null;
 
-        // TODO do something...
+        // TODO do something... 
+        this.bidHistory = null;
     }
 
 
@@ -33,7 +38,7 @@ public class MyOpponentModel implements UtilitySpace, OpponentModel {
      * @param domain the domain
      * @param resBid the reservation bid. Can be null
      */
-    private MyOpponentModel(Domain domain, Bid resBid) {
+    private MyOpponentModel(Domain domain, List<Bid> bidHistory, Bid resBid) {
         if (domain == null) {
             throw new IllegalStateException("domain is not initialized");
         }
@@ -41,6 +46,15 @@ public class MyOpponentModel implements UtilitySpace, OpponentModel {
         this.resBid = resBid;
 
         // TODO do something...        
+        this.bidHistory = bidHistory;
+    }
+
+    /**
+     * @param bidHistory
+     * @return deep copy of bidHistory list.
+     */
+    private static List<Bid> cloneList(List<Bid> bidHistory) {
+        return new ArrayList<>(bidHistory);
     }
 
     /**
@@ -61,10 +75,12 @@ public class MyOpponentModel implements UtilitySpace, OpponentModel {
         if (domain == null) {
             throw new NullPointerException("domain is not initialized");
         }
-        
+
         // TODO do something...
-        
-        return new MyOpponentModel(domain, resBid);
+        List<Bid> bids = new ArrayList<>();
+        bids.add(resBid);
+
+        return new MyOpponentModel(domain, bids, resBid);
     }
 
     /**
@@ -86,12 +102,13 @@ public class MyOpponentModel implements UtilitySpace, OpponentModel {
         if (!(action instanceof Offer))
             return this;
 
-
         Bid bid = ((Offer) action).getBid();
 
         // TODO do something...
+        List<Bid> newBids = cloneList(bidHistory);
+        newBids.add(bid);
 
-        return new MyOpponentModel(domain, resBid);
+        return new MyOpponentModel(domain, newBids, resBid);
     }
 
     /**
