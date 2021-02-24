@@ -77,10 +77,8 @@ public class MyOpponentModel implements UtilitySpace, OpponentModel {
         }
 
         // TODO do something...
-        List<Bid> bids = new ArrayList<>();
-        bids.add(resBid);
 
-        return new MyOpponentModel(domain, bids, resBid);
+        return new MyOpponentModel(domain, new ArrayList<>(), resBid);
     }
 
     /**
@@ -102,8 +100,12 @@ public class MyOpponentModel implements UtilitySpace, OpponentModel {
         if (!(action instanceof Offer))
             return this;
 
+        final int maxRounds = 200;
+        double p = progress.get(System.currentTimeMillis());
+        int roundNum = (int) Math.round(p*maxRounds);
+        
         Bid bid = ((Offer) action).getBid();
-
+        
         // TODO do something...
         List<Bid> newBids = cloneList(bidHistory);
         newBids.add(bid);
