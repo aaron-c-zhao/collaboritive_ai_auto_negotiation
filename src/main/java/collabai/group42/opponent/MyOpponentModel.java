@@ -20,7 +20,7 @@ public class MyOpponentModel implements UtilitySpace, OpponentModel {
     private final Domain domain;
     private final Bid resBid;
 
-    private final List<Bid> bidHistory;
+    private final List<BidWrapper> bidHistory;
 
     public MyOpponentModel() {
         this.domain = null;
@@ -38,7 +38,7 @@ public class MyOpponentModel implements UtilitySpace, OpponentModel {
      * @param domain the domain
      * @param resBid the reservation bid. Can be null
      */
-    private MyOpponentModel(Domain domain, List<Bid> bidHistory, Bid resBid) {
+    private MyOpponentModel(Domain domain, List<BidWrapper> bidHistory, Bid resBid) {
         if (domain == null) {
             throw new IllegalStateException("domain is not initialized");
         }
@@ -53,7 +53,7 @@ public class MyOpponentModel implements UtilitySpace, OpponentModel {
      * @param bidHistory
      * @return deep copy of bidHistory list.
      */
-    private static List<Bid> cloneList(List<Bid> bidHistory) {
+    private static List<BidWrapper> cloneList(List<BidWrapper> bidHistory) {
         return new ArrayList<>(bidHistory);
     }
 
@@ -102,13 +102,13 @@ public class MyOpponentModel implements UtilitySpace, OpponentModel {
 
         final int maxRounds = 200;
         double p = progress.get(System.currentTimeMillis());
-        int roundNum = (int) Math.round(p*maxRounds);
-        
+        int roundNum = (int) Math.round(p * maxRounds);
+
         Bid bid = ((Offer) action).getBid();
-        
+
         // TODO do something...
-        List<Bid> newBids = cloneList(bidHistory);
-        newBids.add(bid);
+        List<BidWrapper> newBids = cloneList(bidHistory);
+        newBids.add(new BidWrapper(bid, roundNum));
 
         return new MyOpponentModel(domain, newBids, resBid);
     }
@@ -163,5 +163,15 @@ public class MyOpponentModel implements UtilitySpace, OpponentModel {
     @Override
     public Bid getReservationBid() {
         return resBid;
+    }
+
+    private class BidWrapper {
+        Bid bid;
+        int round;
+
+        public BidWrapper(Bid bid, int round) {
+            this.bid = bid;
+            this.round = round;
+        }
     }
 }
