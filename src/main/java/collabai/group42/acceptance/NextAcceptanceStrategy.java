@@ -15,20 +15,20 @@ import geniusweb.profile.utilityspace.UtilitySpace;
 public class NextAcceptanceStrategy implements AcceptanceStrategy {
     private final double a = 1;
     private final double b = 0;
+    private Bid nextBid = null;
 
     @Override
     public Boolean isAcceptable(Bid bid, BoaState state) {
         Bid nextOffer = null;
 
-        // Get our next offer
+        if (nextBid == null) throw new IllegalArgumentException("Next bid is null");
 
         UtilitySpace utilSpace = (LinearAdditive) state.getProfile();
 
         return (utilSpace.getUtility(bid).doubleValue() * a + b > utilSpace.getUtility(nextOffer).doubleValue());
     }
 
-    private ExtendedUtilSpace getBidSpace(LinearAdditive profile) {
-        return new ExtendedUtilSpace(profile);
+    public void setNextBid(Bid bid) {
+        this.nextBid = bid;
     }
-
 }
