@@ -16,3 +16,12 @@ public class ConstAcceptanceStrategy implements AcceptanceStrategy {
                 .doubleValue() >= a;
     }
 }
+
+//stream
+//        // specify the number of elements to skip
+//        .skip(fromIndex)
+//        // specify the no. of elements the stream should be limited to
+//        .limit(toIndex - fromIndex + 1);
+
+// list.stream().skip(fromIndex).limit(toIndex - fromIndex + 1)
+// convert back to list
