@@ -6,16 +6,16 @@ import geniusweb.profile.utilityspace.UtilitySpace;
 import geniusweb.boa.BoaState;
 
 public class ConstAcceptanceStrategy implements AcceptanceStrategy {
-    private final double a = 0.9;
+    private final double a = 0.8;
 
     @Override
-    public Boolean isAcceptable(Bid bid, BoaSatate state) {
-
+    public Boolean isAcceptable(Bid bid, BoaState state) {
 
         return ((UtilitySpace) state.getProfile()).getUtility(bid)
                 .doubleValue() >= a;
     }
 }
+
 
 //stream
 //        // specify the number of elements to skip

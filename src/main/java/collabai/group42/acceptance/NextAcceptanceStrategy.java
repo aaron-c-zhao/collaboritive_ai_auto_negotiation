@@ -13,7 +13,7 @@ import geniusweb.profile.utilityspace.UtilitySpace;
 //https://homepages.cwi.nl/~baarslag/pub/Acceptance_conditions_in_automated_negotiation.pdf
 
 public class NextAcceptanceStrategy implements AcceptanceStrategy {
-    private final double a = 1;
+    private final double a = 1.02;
     private final double b = 0;
     private Bid nextBid = null;
 
@@ -23,7 +23,7 @@ public class NextAcceptanceStrategy implements AcceptanceStrategy {
 
         if (nextBid == null) throw new IllegalArgumentException("Next bid is null");
 
-        UtilitySpace utilSpace = (LinearAdditive) state.getProfile();
+        UtilitySpace utilSpace = (UtilitySpace) state.getProfile();
 
         return (utilSpace.getUtility(bid).doubleValue() * a + b > utilSpace.getUtility(nextOffer).doubleValue());
     }
