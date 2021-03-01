@@ -1,10 +1,13 @@
 package collabai.group42.biddingStrategy;
 
+import collabai.group42.opponent.Group42OpponentModel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import geniusweb.actions.Action;
 import geniusweb.actions.PartyId;
 import collabai.group42.BoaState;
 import geniusweb.inform.Settings;
+import geniusweb.issuevalue.Bid;
+import geniusweb.opponentmodel.OpponentModel;
 import geniusweb.profile.Profile;
 import geniusweb.profile.utilityspace.LinearAdditive;
 import geniusweb.progress.ProgressRounds;
@@ -16,9 +19,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import tudelft.utilities.immutablelist.ImmutableList;
 import tudelft.utilities.logging.Reporter;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -26,12 +31,15 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
@@ -171,5 +179,19 @@ public class Group42BiddingStrategyTest {
         assertEquals(2.0 + 3.0 * mockBiddingStrategy.getNiceness(), mockBiddingStrategy.getA(), EPSILON);
     }
 
+    @Test
+    public void testGetNiceBid() {
+        ImmutableList<Bid> bidOptions
+                = biddingStrategy.bidSpace.getBids(BigDecimal.valueOf(0.5));
+        Map<PartyId, OpponentModel> opponentModels = new HashMap<>();
+        Group42OpponentModel om = mock(Group42OpponentModel.class);
+        when(om.getUtility(any())).thenReturn(BigDecimal.valueOf(0.5))
+                .thenReturn(BigDecimal.valueOf(0.1))
+                .thenReturn(BigDecimal.valueOf(0.01));
+        opponentModels.put(new PartyId("party2"), om);
+        when(boaState.getOpponentModels()).thenReturn(opponentModels);
+
+        assertEquals(bidOptions.get(0), biddingStrategy.getNiceBid(bidOptions, boaState));
+    }
 
 }

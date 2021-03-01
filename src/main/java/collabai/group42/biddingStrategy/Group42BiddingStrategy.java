@@ -104,7 +104,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
     protected Bid getNiceBid(ImmutableList<Bid> bidOptions, BoaState boaState) {
         long maxIndex = 0;
         double maxUtility = 0.0;
-        for (int i = 0; i < bidOptions.size().intValue() && i < 10; i++) {
+        for (int i = 0; i < bidOptions.size().intValue() && i < 20; i++) {
             long index = ThreadLocalRandom.current()
                     .nextInt(bidOptions.size().intValue());
             double utility = getOpponentUtility(bidOptions.get(index), boaState);
@@ -113,9 +113,6 @@ public class Group42BiddingStrategy implements BiddingStrategy{
                 maxIndex = index;
             }
         }
-
-        System.out.println("size: " + bidOptions.size().intValue());
-        System.out.println("index: " + maxIndex);
         return bidOptions.get(maxIndex);
     }
 
