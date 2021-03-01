@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 public class Group42TicForTac extends Group42BiddingStrategy {
 
     private double[] nashPoint = {0.0, 0.0};
-    private double reserValue = getMin();
+    private double reserValue = 0.0;
     private double maxValue = 1.0;
     private static final int STEP_NUM = 100;
 
@@ -31,7 +31,7 @@ public class Group42TicForTac extends Group42BiddingStrategy {
                 .getBids((BigDecimal.valueOf(targetUtility)));
 
         if (bidOptions.size().intValue() == 0)
-            getAlterAction(boaState, targetUtility, lastBid, bidOptions);
+            return getAlterAction(boaState, targetUtility, lastBid, bidOptions);
 
         return new Offer(me, getNiceBid(bidOptions));
     }
@@ -52,7 +52,8 @@ public class Group42TicForTac extends Group42BiddingStrategy {
     /**
      * Update the nash point according to the most recent opponent model.
      */
-    private void updateNashPoint() {
+    protected void updateNashPoint() {
+        System.out.println("called");
         double maxProduct = 0.0;
         double step = (maxValue - reserValue) / STEP_NUM;
         for (int i = STEP_NUM; i > 0; i--) {
@@ -65,7 +66,7 @@ public class Group42TicForTac extends Group42BiddingStrategy {
             double utilityOp = getOpponentUtility(bid);
             double product = (utilityOp - getOpponentReservation())
                   * profit;
-            if (maxProduct < product) {
+            if (maxProduct <= product) {
                 nashPoint[0] = utility;
                 nashPoint[1] = utilityOp;
             }
@@ -81,8 +82,20 @@ public class Group42TicForTac extends Group42BiddingStrategy {
      *
      * @return opponent's reservation value.
      */
-    private double getOpponentReservation() {
+    protected double getOpponentReservation() {
         return 0.0;
+    }
+
+
+    @Override
+    protected void init(BoaState boaState) {
+        super.init(boaState);
+        reserValue = getMin();
+    }
+
+
+    protected double[] getNashPoint() {
+        return nashPoint;
     }
 
 }

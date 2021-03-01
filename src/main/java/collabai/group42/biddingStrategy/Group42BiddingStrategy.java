@@ -111,6 +111,9 @@ public class Group42BiddingStrategy implements BiddingStrategy{
                 maxIndex = index;
             }
         }
+
+        System.out.println("size: " + bidOptions.size().intValue());
+        System.out.println("index: " + maxIndex);
         return bidOptions.get(maxIndex);
     }
 
