@@ -1,11 +1,12 @@
 package collabai.group42;
 
+import collabai.group42.acceptance.AcceptanceStrategy;
 import collabai.group42.biddingStrategy.BiddingStrategy;
 import geniusweb.actions.Action;
 import geniusweb.actions.PartyId;
 import geniusweb.boa.BoaParty;
 import geniusweb.boa.InstantiationFailedException;
-import geniusweb.boa.acceptancestrategy.AcceptanceStrategy;
+
 
 import geniusweb.inform.Settings;
 import geniusweb.issuevalue.Bid;
