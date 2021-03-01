@@ -3,7 +3,6 @@ package collabai.group42.acceptance;
 import geniusweb.actions.Action;
 import geniusweb.actions.Offer;
 import collabai.group42.BoaState;
-import collabai.group42.acceptance.AcceptanceStrategy;
 import geniusweb.issuevalue.Bid;
 import geniusweb.profile.utilityspace.LinearAdditive;
 import geniusweb.profile.utilityspace.UtilitySpace;
