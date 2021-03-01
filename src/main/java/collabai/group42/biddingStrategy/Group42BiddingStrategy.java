@@ -17,8 +17,6 @@ import tudelft.utilities.immutablelist.ImmutableList;
 
 import java.lang.Math;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,15 +25,13 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 
 
-public class Group42BiddingStrategy implements BiddingStrategy{
+public class Group42BiddingStrategy implements BiddingStrategy {
 
     protected ExtendedUtilSpace bidSpace = null;
     protected PartyId me;
     private double min, max;
-    private double a = 3.0, b = 0.15;
-    private final int maxToughness = 9, minToughness = 4;
-    private double prevUtility = 1.0;
-    protected LinkedList<List<Double>> recentBids = new LinkedList<List<Double>>();
+    private double a = 4.0, b = 0.15;
+    protected LinkedList<List<Double>> recentBids = new LinkedList<>();
 
     @Override
     public Action getAction(BoaState boaState) {
@@ -43,18 +39,17 @@ public class Group42BiddingStrategy implements BiddingStrategy{
             init(boaState);
         }
 
-        double targetUtility = getTargetUtility(
-                boaState.getProgress().get(System.currentTimeMillis()));
+        double progress = boaState.getProgress().get(System.currentTimeMillis());
+
+        double targetUtility = getTargetUtility(progress);
 
         Bid lastBid = getLastBid(boaState.getActionHistory());
         if (!(lastBid == null) && recentBids.size() < 10)
-            recentBids.add(new ArrayList<>(Arrays.asList(prevUtility, getUtility(lastBid))));
+            recentBids.add(Arrays.asList(progress, getUtility(lastBid)));
         else if (recentBids.size() == 10) {
             recentBids.remove();
-            recentBids.add(Arrays.asList(prevUtility, getUtility(lastBid)));
+            recentBids.add(Arrays.asList(progress, getUtility(lastBid)));
         }
-
-        prevUtility = targetUtility;
 
         ImmutableList<Bid> bidOptions = bidSpace
                 .getBids((BigDecimal.valueOf(targetUtility)));
@@ -71,10 +66,10 @@ public class Group42BiddingStrategy implements BiddingStrategy{
     /**
      * React when no valid bid is found at target utility.
      *
-     * @param boaState {@link BoaState}
+     * @param boaState      {@link BoaState}
      * @param targetUtility target utility at which no valid bid is found
-     * @param lastBid opponent's last bid
-     * @param bidOptions bid options
+     * @param lastBid       opponent's last bid
+     * @param bidOptions    bid options
      * @return alternative action. Either
      */
     protected AbstractAction getAlterAction(BoaState boaState, double targetUtility, Bid lastBid, ImmutableList<Bid> bidOptions) {
@@ -103,6 +98,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
 
     /**
      * Find the nicest bid wrt the opponent within 10 attempts.
+     *
      * @param bidOptions candidate bids
      * @return the nicest bid among 10 random bids at the target utility
      */
@@ -146,16 +142,16 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      */
     protected double getTargetUtility(Double progress) {
         if (progress < 0.1) {
-            return (1 - progress) * this.max;
+            return (1 - progress * 0.1) * this.max;
         }
         //in the middle part of the negotiation, the toughness of the opponent affect the inflection point
         //which is when to concede at a faster rate
-        else if (progress < 0.6) {
+        else if (progress < 0.8) {
             setB();
             return (getTimeDependUtility(progress)) * this.max;
         }
         //in the later half of the negotiation, the toughness of the opponent affect the concede ratio.
-        else if (progress < 0.99){
+        else if (progress < 0.99) {
             setA();
             return (getTimeDependUtility(progress)) * this.max;
         }
@@ -181,7 +177,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
 
     /**
      * Formula for time dependent behavior.
-     *
+     * <p>
      * U(t) = 0.9 - (t - b)^a
      *
      * <li>b: [0.05 - 0.25]</li>
@@ -191,7 +187,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      * @return
      */
     private double getTimeDependUtility(Double progress) {
-        return 0.9 - Math.pow((progress - getB()), getA());
+        return 0.99 - Math.pow((progress - getB()), getA());
     }
 
     /**
@@ -199,7 +195,8 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      */
     protected void setB() {
         double niceness = getNiceness();
-        this.b =  0.05 + 0.2 * niceness;
+        this.b = 0.1 + 0.1 * niceness;
+        System.out.println(niceness);
     }
 
     /**
@@ -207,7 +204,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      */
     protected void setA() {
         double niceness = getNiceness();
-        this.a = 2.0 + 3.0 * niceness;
+        this.a = 4.0 + 2.0 * niceness;
     }
 
 
@@ -222,28 +219,27 @@ public class Group42BiddingStrategy implements BiddingStrategy{
     /**
      * Calculate the opponent's niceness based on the slop of linear regression of the previous bids.
      * <p>
-     *     If the slope is smaller than PI/maxToughness then the opponent is playing tough. Correspondingly,
-     *     the agent may consider to play extra tough to punish the opponent and end up breaking the deal.
+     * If the slope is smaller than PI/maxToughness then the opponent is playing tough. Correspondingly,
+     * the agent may consider to play extra tough to punish the opponent and end up breaking the deal.
      * </p>
      * <p>
-     *     If the slope is greater than PI/minToughness then the opponent is conceding normally,
-     *     then the nicer it plays the tougher the agent becomes. Vice versa.
+     * If the slope is greater than PI/minToughness then the opponent is conceding normally,
+     * then the nicer it plays the tougher the agent becomes. Vice versa.
      * </p>
      *
      * @return the niceness of opponents which should be normalized into a range of [0, 1]
      */
     protected double getNiceness() {
         SimpleRegression regression = new SimpleRegression();
-        for (List<Double> point: getRecentBids()) {
+        for (List<Double> point : getRecentBids()) {
             regression.addData(point.get(0), point.get(1));
         }
         double slope = regression.getSlope();
-
+        System.out.println("slope" + slope);
         // map the slope into range [0, 1]
-        slope = (slope < Math.PI / maxToughness)? 0.0 : slope;
-        slope = (slope > Math.PI / minToughness)? 1.0 : slope;
-        slope = (slope - minToughness) / (maxToughness - minToughness);
-        return slope;
+        slope = Math.min(slope, 0.0);
+        slope = Math.max(slope, -1.0);
+        return -slope;
     }
 
     protected LinkedList<List<Double>> getRecentBids() {
@@ -253,7 +249,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
     protected void init(BoaState boaState) {
         this.me = boaState.getSettings().getID();
         Profile prof = boaState.getProfile();
-        if(!(prof instanceof LinearAdditive)) {
+        if (!(prof instanceof LinearAdditive)) {
             throw new IllegalArgumentException(
                     "Requires a LinearAdditive space but got " + prof);
         }
@@ -276,7 +272,6 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      * Wrapper method. Enable testing bidding strategy with various opponent behavior.
      *
      * @param pickedBid bid that the opponent model will evaluate against
-     *
      * @return Estimated utility value of last bid from opponent model.
      * TODO: call the actual API from opponent model
      */
@@ -293,7 +288,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
 
     /**
      * @return the most recent bid that was offered, or null if no offer has
-     *         been done yet.
+     * been done yet.
      */
     protected Bid getLastBid(List<Action> history) {
         for (int n = history.size() - 1; n >= 0; n--) {
