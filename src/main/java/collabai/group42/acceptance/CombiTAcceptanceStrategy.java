@@ -25,9 +25,10 @@ public class CombiTAcceptanceStrategy implements AcceptanceStrategy {
         double highestUtil = 0;
         for (int i = state.getActionHistory().size() - 1; i >= 0; i--) {
             Action action = state.getActionHistory().get(i);
-            if (action.getActor() != state.getSettings().getID() && action instanceof Offer) ;
-            Offer offer = (Offer) action;
-            if (highestUtil < utilSpace.getUtility(offer.getBid()).doubleValue()) highestUtil = utilSpace.getUtility(offer.getBid()).doubleValue();
+            if (action.getActor() != state.getSettings().getID() && action instanceof Offer) {
+	            Offer offer = (Offer) action;
+	            if (highestUtil < utilSpace.getUtility(offer.getBid()).doubleValue()) highestUtil = utilSpace.getUtility(offer.getBid()).doubleValue();
+            }
         }
 
         if (state.getProgress().get(System.currentTimeMillis()) > T && utilSpace.getUtility(bid).doubleValue() > highestUtil) {

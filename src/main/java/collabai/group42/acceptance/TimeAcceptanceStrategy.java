@@ -2,7 +2,6 @@ package collabai.group42.acceptance;
 
 import collabai.group42.BoaState;
 import geniusweb.issuevalue.Bid;
-import geniusweb.profile.utilityspace.UtilitySpace;
 
 public class TimeAcceptanceStrategy implements AcceptanceStrategy {
     private final double T = 0.92;

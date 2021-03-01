@@ -5,7 +5,6 @@ import geniusweb.actions.Action;
 import geniusweb.actions.ActionWithBid;
 import collabai.group42.BoaState;
 import geniusweb.issuevalue.Bid;
-import geniusweb.profile.utilityspace.LinearAdditive;
 import geniusweb.profile.utilityspace.UtilitySpace;
 
 
