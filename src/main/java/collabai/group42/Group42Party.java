@@ -1,11 +1,14 @@
 package collabai.group42;
 
 
+import collabai.group42.opponent.MyFrequencyOpponentModel;
+import geniusweb.boa.InstantiationFailedException;
 import collabai.group42.acceptance.CombiWAcceptanceStrategy;
 import collabai.group42.biddingStrategy.Group42BiddingStrategy;
 import collabai.group42.acceptance.AcceptanceStrategy;
 import collabai.group42.biddingStrategy.BiddingStrategy;
 import geniusweb.inform.Settings;
+import geniusweb.opponentmodel.FrequencyOpponentModel;
 import geniusweb.opponentmodel.OpponentModel;
 import tudelft.utilities.logging.Reporter;
 import collabai.group42.DefaultBoa;
@@ -27,8 +30,8 @@ public class Group42Party extends DefaultBoa {
 	}
 
 	@Override
-	protected Class<? extends OpponentModel> getOpponentModel(Settings settings) {
-		return null;
+	protected Class<? extends OpponentModel> getOpponentModel(Settings settings) throws InstantiationFailedException {
+		return MyFrequencyOpponentModel.class;
 	}
 
 	@Override
