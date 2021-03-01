@@ -39,12 +39,12 @@ public class Group42TicForTac extends Group42BiddingStrategy {
 
     protected double getTargetUtility(Double progress, Bid lastBid, BoaState boaState) {
         if (progress < 0.1)
-            return 1 - progress;
+            return (1 - progress / 10) * this.maxValue;
         else if (progress < 0.99){
             updateNashPoint(boaState);
-            double dist = getOpponentUtility(lastBid, boaState) / nashPoint[1];
+            double dist = getOpponentUtility(lastBid, boaState) / getNashPoint()[1];
             dist = Math.min(dist, 1.0);
-            return 1.0 - dist* (1.0 - nashPoint[0]);
+            return 1.0 - dist* (1.0 - getNashPoint()[0]);
         }
         else return getMin();
     }
@@ -53,7 +53,6 @@ public class Group42TicForTac extends Group42BiddingStrategy {
      * Update the nash point according to the most recent opponent model.
      */
     protected void updateNashPoint(BoaState boaState) {
-        System.out.println("called");
         double maxProduct = 0.0;
         double step = (maxValue - reserValue) / STEP_NUM;
         for (int i = STEP_NUM; i > 0; i--) {
@@ -67,6 +66,7 @@ public class Group42TicForTac extends Group42BiddingStrategy {
             double product = (utilityOp - getOpponentReservation())
                   * profit;
             if (maxProduct <= product) {
+                maxProduct = product;
                 nashPoint[0] = utility;
                 nashPoint[1] = utilityOp;
             }
@@ -91,6 +91,7 @@ public class Group42TicForTac extends Group42BiddingStrategy {
     protected void init(BoaState boaState) {
         super.init(boaState);
         reserValue = getMin();
+        maxValue = getMax();
     }
 
 
