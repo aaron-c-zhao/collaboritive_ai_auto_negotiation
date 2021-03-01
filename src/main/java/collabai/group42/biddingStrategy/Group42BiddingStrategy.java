@@ -1,5 +1,6 @@
 package collabai.group42.biddingStrategy;
 
+import geniusweb.actions.AbstractAction;
 import geniusweb.actions.Accept;
 import geniusweb.actions.Action;
 import geniusweb.actions.EndNegotiation;
@@ -25,12 +26,12 @@ import java.util.logging.Level;
 
 public class Group42BiddingStrategy implements BiddingStrategy{
 
-    private ExtendedUtilSpace bidSpace = null;
-    private PartyId me;
+    protected ExtendedUtilSpace bidSpace = null;
+    protected PartyId me;
     private double a = 3.0, b = 0.15;
     private final int maxToughness = 9, minToughness = 4;
     private double prevUtility = 1.0;
-    private LinkedList<List<Double>> recentBids = new LinkedList<List<Double>>();
+    protected LinkedList<List<Double>> recentBids = new LinkedList<List<Double>>();
 
     @Override
     public Action getAction(BoaState boaState) {
@@ -56,14 +57,32 @@ public class Group42BiddingStrategy implements BiddingStrategy{
 
         if (bidOptions.size().intValue() == 0) {
             // should not happen, emergency exit
-            boaState.getReporter().log(Level.WARNING,
-                    "No viable bids found at target utility: " + targetUtility);
+            return getAlterAction(boaState, targetUtility, lastBid, bidOptions);
+        }
 
-            // try target utility plus a randomized value in [-0.05, 0.05]
-            for (int i = 0; i < 10 && bidOptions.size().intValue() == 0; i++) {
-                bidOptions = bidSpace.getBids(BigDecimal.valueOf(targetUtility
-                        + (ThreadLocalRandom.current().nextDouble() - 0.5) / 10));
-            }
+        // pick the most beneficial bid from the opponent's perspective
+        return new Offer(me, getNiceBid(bidOptions));
+    }
+
+    /**
+     * React when no valid bid is found at target utility.
+     *
+     * @param boaState {@link BoaState}
+     * @param targetUtility target utility at which no valid bid is found
+     * @param lastBid opponent's last bid
+     * @param bidOptions bid options
+     * @return alternative action. Either
+     */
+    protected AbstractAction getAlterAction(BoaState boaState, double targetUtility, Bid lastBid, ImmutableList<Bid> bidOptions) {
+        boaState.getReporter().log(Level.WARNING,
+                "No viable bids found at target utility: " + targetUtility);
+
+        // try target utility plus a randomized value in [-0.05, 0.05]
+        for (int i = 0; i < 10 && bidOptions.size().intValue() == 0; i++) {
+            bidOptions = bidSpace.getBids(BigDecimal.valueOf(targetUtility
+                    + (ThreadLocalRandom.current().nextDouble() - 0.5) / 10));
+        }
+        if (bidOptions.size().intValue() == 0) {
             boaState.getReporter().log(Level.WARNING,
                     "No viable bids found after 10 attempts.");
 
@@ -72,10 +91,17 @@ public class Group42BiddingStrategy implements BiddingStrategy{
                 return new Accept(me, lastBid);
             return new EndNegotiation(me);
         }
+        return new Offer(me, getNiceBid(bidOptions));
+    }
 
-        // pick the most beneficial bid from the opponent's perspective
-        double maxUtility = 0.0;
+    /**
+     * Find the nicest bid wrt the opponent within 10 attempts.
+     * @param bidOptions candidate bids
+     * @return the nicest bid among 10 random bids at the target utility
+     */
+    protected Bid getNiceBid(ImmutableList<Bid> bidOptions) {
         long maxIndex = 0;
+        double maxUtility = 0.0;
         for (int i = 0; i < bidOptions.size().intValue() && i < 10; i++) {
             long index = ThreadLocalRandom.current()
                     .nextInt(bidOptions.size().intValue());
@@ -85,7 +111,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
                 maxIndex = index;
             }
         }
-        return new Offer(me, bidOptions.get(maxIndex));
+        return bidOptions.get(maxIndex);
     }
 
     /**
@@ -121,7 +147,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
             return getTimeDependUtility(progress);
         }
         //in the later half of the negotiation, the toughness of the opponent affect the concede ratio.
-        else if (progress < 0.9986){
+        else if (progress < 0.99){
             setA();
             return getTimeDependUtility(progress);
         }
@@ -212,7 +238,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
         return this.recentBids;
     }
 
-    private void init(BoaState boaState) {
+    protected void init(BoaState boaState) {
         this.me = boaState.getSettings().getID();
         Profile prof = boaState.getProfile();
         if(!(prof instanceof LinearAdditive)) {
@@ -239,7 +265,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      * @return Estimated utility value of last bid from opponent model.
      * TODO: call the actual API from opponent model
      */
-    private double getOpponentUtility(Bid pickedBid) {
+    protected double getOpponentUtility(Bid pickedBid) {
         return 0.0;
     }
 
