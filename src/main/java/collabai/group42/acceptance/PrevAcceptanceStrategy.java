@@ -1,15 +1,10 @@
 package collabai.group42.acceptance;
 
-import collabai.group42.biddingStrategy.ExtendedUtilSpace;
 import geniusweb.actions.Action;
-import geniusweb.actions.ActionWithBid;
 import geniusweb.actions.Offer;
-import geniusweb.bidspace.BidsWithUtility;
 import geniusweb.boa.BoaState;
 import geniusweb.boa.acceptancestrategy.AcceptanceStrategy;
 import geniusweb.issuevalue.Bid;
-import geniusweb.profile.Profile;
-import geniusweb.profile.utilityspace.LinearAdditive;
 import geniusweb.profile.utilityspace.UtilitySpace;
 
 

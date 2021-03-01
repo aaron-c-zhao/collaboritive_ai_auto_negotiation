@@ -30,14 +30,16 @@ public class CombiWAcceptanceStrategy implements AcceptanceStrategy {
 
         for (int i = state.getActionHistory().size() - 1; i >= 0; i--) {
             Action action = state.getActionHistory().get(i);
-            if (action.getActor() != state.getSettings().getID() && action instanceof Offer) ;
-            Offer offer = (Offer) action;
-            count++;
+            if (action.getActor() != state.getSettings().getID() && action instanceof Offer) {
+            	Offer offer = (Offer) action;
+                count++;
 
-            int window = (int) (1-progress)* 200; // how many rounds in the past to check
-            if (progress > 0.5 && count > window) break;
+                int window = (int) (1-progress)* 200; // how many rounds in the past to check
+                if (progress > 0.5 && count > window) break;
 
-            if (highestUtil < utilSpace.getUtility(offer.getBid()).doubleValue()) highestUtil = utilSpace.getUtility(offer.getBid()).doubleValue();
+                if (highestUtil < utilSpace.getUtility(offer.getBid()).doubleValue()) highestUtil = utilSpace.getUtility(offer.getBid()).doubleValue();
+            }
+            
         }
 
         if (state.getProgress().get(System.currentTimeMillis()) > T && utilSpace.getUtility(bid).doubleValue() > highestUtil) {
