@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * Stores the current state of the negotiation for a {@link BoaParty}, including
@@ -197,7 +198,7 @@ public class BoaState {
 
     public Map<PartyId, OpponentModel> getOpponentModels() {
         if (opponentModels.isEmpty())
-            throw new IllegalArgumentException("No available opponent model");
+            return null;
         return this.opponentModels;
     }
 

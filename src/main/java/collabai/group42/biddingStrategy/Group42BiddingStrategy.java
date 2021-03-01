@@ -17,6 +17,7 @@ import tudelft.utilities.immutablelist.ImmutableList;
 
 import java.lang.Math;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -30,6 +31,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
 
     protected ExtendedUtilSpace bidSpace = null;
     protected PartyId me;
+    private double min, max;
     private double a = 3.0, b = 0.15;
     private final int maxToughness = 9, minToughness = 4;
     private double prevUtility = 1.0;
@@ -81,8 +83,11 @@ public class Group42BiddingStrategy implements BiddingStrategy{
 
         // try target utility plus a randomized value in [-0.05, 0.05]
         for (int i = 0; i < 10 && bidOptions.size().intValue() == 0; i++) {
-            bidOptions = bidSpace.getBids(BigDecimal.valueOf(targetUtility
-                    + (ThreadLocalRandom.current().nextDouble() - 0.5) / 10));
+            BigDecimal tUtility = BigDecimal.valueOf(targetUtility
+                    + (ThreadLocalRandom.current().nextDouble() - 1) / 10);//.setScale(2, RoundingMode.HALF_UP);
+            bidOptions = bidSpace.getBids(tUtility);
+//            System.out.println(tUtility.doubleValue());
+//            System.out.println(bidOptions.size().intValue());
         }
         if (bidOptions.size().intValue() == 0) {
             boaState.getReporter().log(Level.WARNING,
@@ -108,6 +113,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
             long index = ThreadLocalRandom.current()
                     .nextInt(bidOptions.size().intValue());
             double utility = getOpponentUtility(bidOptions.get(index), boaState);
+//            System.out.println(utility);
             if (maxUtility < utility) {
                 maxUtility = utility;
                 maxIndex = index;
@@ -140,22 +146,22 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      */
     protected double getTargetUtility(Double progress) {
         if (progress < 0.1) {
-            return 1 - progress;
+            return (1 - progress) * this.max;
         }
         //in the middle part of the negotiation, the toughness of the opponent affect the inflection point
         //which is when to concede at a faster rate
         else if (progress < 0.6) {
             setB();
-            return getTimeDependUtility(progress);
+            return (getTimeDependUtility(progress)) * this.max;
         }
         //in the later half of the negotiation, the toughness of the opponent affect the concede ratio.
         else if (progress < 0.99){
             setA();
-            return getTimeDependUtility(progress);
+            return (getTimeDependUtility(progress)) * this.max;
         }
         //only one round left, set the target utility to reservation value.
         else {
-            return getMin();
+            return this.min;
         }
     }
 
@@ -167,6 +173,10 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      */
     protected double getMin() {
         return bidSpace.getMin().doubleValue();
+    }
+
+    protected double getMax() {
+        return bidSpace.getMax().doubleValue();
     }
 
     /**
@@ -251,6 +261,9 @@ public class Group42BiddingStrategy implements BiddingStrategy{
 
         this.bidSpace = getBidSpace(profile);
 
+        min = getMin();
+        max = getMax();
+
         boaState.getReporter().log(Level.INFO,
                 "Group42 BOA biddingStrategy initialized");
     }
@@ -269,6 +282,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      */
     protected double getOpponentUtility(Bid pickedBid, BoaState boaState) {
         Map<PartyId, OpponentModel> oms = boaState.getOpponentModels();
+        if (oms == null) return 0.0;
         for (PartyId id : oms.keySet()) {
             if (id == me) continue;
             Group42OpponentModel om = (Group42OpponentModel) oms.get(id);
