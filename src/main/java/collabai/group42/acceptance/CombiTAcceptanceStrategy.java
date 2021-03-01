@@ -34,6 +34,8 @@ public class CombiTAcceptanceStrategy implements AcceptanceStrategy {
         // loop through action history
         for (int i = state.getActionHistory().size() - 1; i >= 0; i--) {
             Action action = state.getActionHistory().get(i);
+            
+            // if the current action is an offer made by the opponent
             if (action.getActor() != state.getSettings().getID() && action instanceof Offer) {
 	            Offer offer = (Offer) action;
 	            if (highestUtil < utilSpace.getUtility(offer.getBid()).doubleValue()) highestUtil = utilSpace.getUtility(offer.getBid()).doubleValue();

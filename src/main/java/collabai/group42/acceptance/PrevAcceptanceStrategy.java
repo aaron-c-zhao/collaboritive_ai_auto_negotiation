@@ -10,7 +10,6 @@ import geniusweb.profile.utilityspace.UtilitySpace;
 /**
  * Class for a acceptance condition called ACprev. Works by comparing the incoming bid with the last bid sent.
  * see: https://homepages.cwi.nl/~baarslag/pub/Acceptance_conditions_in_automated_negotiation.pdf
- *
  */
 public class PrevAcceptanceStrategy implements AcceptanceStrategy {
     private final double a = 1.02; // multiplier for utility of bid
@@ -25,7 +24,7 @@ public class PrevAcceptanceStrategy implements AcceptanceStrategy {
         for (int i = state.getActionHistory().size() - 1; i >= 0; i--) {
             Action action = state.getActionHistory().get(i);
             
-            // if the current action is an offer made by the opponent
+            // if the current action is an offer made by us opponent
             if (action.getActor() == state.getSettings().getID() && action instanceof Offer) {
 	            Offer offer = (Offer) action;
 	            lastOffer = offer.getBid();

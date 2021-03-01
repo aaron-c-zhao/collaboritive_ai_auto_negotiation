@@ -40,6 +40,8 @@ public class CombiWAcceptanceStrategy implements AcceptanceStrategy {
         // loop through action history
         for (int i = state.getActionHistory().size() - 1; i >= 0; i--) {
             Action action = state.getActionHistory().get(i);
+            
+            // if the current action is an offer made by the opponent
             if (action.getActor() != state.getSettings().getID() && action instanceof Offer) {
             	Offer offer = (Offer) action;
                 count++; // action is opponent bid
@@ -52,7 +54,7 @@ public class CombiWAcceptanceStrategy implements AcceptanceStrategy {
             
         }
 
-        // if past T and bid is the best bid we received so far
+        // if past T and bid is the best bid we received in the timeframe
         if (progress > T && utilSpace.getUtility(bid).doubleValue() > highestUtil) {
             return true;
         }
