@@ -3,7 +3,7 @@ package collabai.group42.biddingStrategy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import geniusweb.actions.Action;
 import geniusweb.actions.PartyId;
-import geniusweb.boa.BoaState;
+import collabai.group42.BoaState;
 import geniusweb.inform.Settings;
 import geniusweb.profile.Profile;
 import geniusweb.profile.utilityspace.LinearAdditive;

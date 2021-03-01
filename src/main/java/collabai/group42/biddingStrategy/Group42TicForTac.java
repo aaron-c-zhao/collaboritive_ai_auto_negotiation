@@ -2,7 +2,7 @@ package collabai.group42.biddingStrategy;
 
 import geniusweb.actions.Action;
 import geniusweb.actions.Offer;
-import geniusweb.boa.BoaState;
+import collabai.group42.BoaState;
 import geniusweb.issuevalue.Bid;
 import tudelft.utilities.immutablelist.ImmutableList;
 

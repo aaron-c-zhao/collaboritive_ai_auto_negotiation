@@ -1,13 +1,14 @@
 package collabai.group42;
 
 
+import collabai.group42.acceptance.CombiWAcceptanceStrategy;
 import collabai.group42.biddingStrategy.Group42BiddingStrategy;
-import geniusweb.boa.acceptancestrategy.AcceptanceStrategy;
-import geniusweb.boa.biddingstrategy.BiddingStrategy;
+import collabai.group42.acceptance.AcceptanceStrategy;
+import collabai.group42.biddingStrategy.BiddingStrategy;
 import geniusweb.inform.Settings;
 import geniusweb.opponentmodel.OpponentModel;
 import tudelft.utilities.logging.Reporter;
-import geniusweb.boa.DefaultBoa;
+import collabai.group42.DefaultBoa;
 
 /**
  * An implementation of the BOA party in negotiation. The party only supports SOAP protocol, and is only capable of
@@ -37,7 +38,7 @@ public class Group42Party extends DefaultBoa {
 
 	@Override
 	protected AcceptanceStrategy getAccceptanceStrategy(Settings settings) {
-		return null;
+		return new CombiWAcceptanceStrategy();
 	}
 
 
