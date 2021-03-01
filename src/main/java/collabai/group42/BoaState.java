@@ -195,6 +195,12 @@ public class BoaState {
         return reporter;
     }
 
+    public Map<PartyId, OpponentModel> getOpponentModels() {
+        if (opponentModels.isEmpty())
+            throw new IllegalArgumentException("No available opponent model");
+        return this.opponentModels;
+    }
+
     /**
      * @param action
      * @return the map with the opponentmodels, with the model for the party
@@ -237,5 +243,7 @@ public class BoaState {
         newmodels.put(newparty, newmodel);
         return newmodels;
     }
+
+
 
 }

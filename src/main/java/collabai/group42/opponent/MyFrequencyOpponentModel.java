@@ -28,7 +28,7 @@ import geniusweb.progress.Progress;
  * <p>
  * immutable.
  */
-public class MyFrequencyOpponentModel implements UtilitySpace, OpponentModel {
+public class MyFrequencyOpponentModel implements Group42OpponentModel {
 
     private static final int DECIMALS = 4; // accuracy of our computations.
     private static int serial = 1; // counter for auto name generation

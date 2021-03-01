@@ -9,10 +9,11 @@ import geniusweb.profile.utilityspace.UtilitySpace;
 import geniusweb.progress.Progress;
 
 import java.math.BigDecimal;
+import java.security.acl.Group;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MyOpponentModel implements UtilitySpace, OpponentModel {
+public class MyOpponentModel implements Group42OpponentModel {
 
     private static final int DECIMALS = 4; // accuracy of our computations.
     private static int serial = 1; // counter for auto name generation

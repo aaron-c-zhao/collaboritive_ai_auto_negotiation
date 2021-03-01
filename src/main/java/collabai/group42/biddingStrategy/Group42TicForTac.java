@@ -25,7 +25,7 @@ public class Group42TicForTac extends Group42BiddingStrategy {
         Bid lastBid = getLastBid(boaState.getActionHistory());
 
         double targetUtility = getTargetUtility(
-                boaState.getProgress().get(System.currentTimeMillis()), lastBid);
+                boaState.getProgress().get(System.currentTimeMillis()), lastBid, boaState);
 
         ImmutableList<Bid> bidOptions = bidSpace
                 .getBids((BigDecimal.valueOf(targetUtility)));
@@ -33,16 +33,16 @@ public class Group42TicForTac extends Group42BiddingStrategy {
         if (bidOptions.size().intValue() == 0)
             return getAlterAction(boaState, targetUtility, lastBid, bidOptions);
 
-        return new Offer(me, getNiceBid(bidOptions));
+        return new Offer(me, getNiceBid(bidOptions, boaState));
     }
 
 
-    protected double getTargetUtility(Double progress, Bid lastBid) {
+    protected double getTargetUtility(Double progress, Bid lastBid, BoaState boaState) {
         if (progress < 0.1)
             return 1 - progress;
         else if (progress < 0.99){
-            updateNashPoint();
-            double dist = getOpponentUtility(lastBid) / nashPoint[1];
+            updateNashPoint(boaState);
+            double dist = getOpponentUtility(lastBid, boaState) / nashPoint[1];
             dist = Math.min(dist, 1.0);
             return 1.0 - dist* (1.0 - nashPoint[0]);
         }
@@ -52,7 +52,7 @@ public class Group42TicForTac extends Group42BiddingStrategy {
     /**
      * Update the nash point according to the most recent opponent model.
      */
-    protected void updateNashPoint() {
+    protected void updateNashPoint(BoaState boaState) {
         System.out.println("called");
         double maxProduct = 0.0;
         double step = (maxValue - reserValue) / STEP_NUM;
@@ -62,8 +62,8 @@ public class Group42TicForTac extends Group42BiddingStrategy {
             ImmutableList<Bid> bidOptions = bidSpace
                 .getBids((BigDecimal.valueOf(utility)));
             if (bidOptions.size().intValue() == 0) continue;
-            Bid bid = getNiceBid(bidOptions);
-            double utilityOp = getOpponentUtility(bid);
+            Bid bid = getNiceBid(bidOptions, boaState);
+            double utilityOp = getOpponentUtility(bid, boaState);
             double product = (utilityOp - getOpponentReservation())
                   * profit;
             if (maxProduct <= product) {

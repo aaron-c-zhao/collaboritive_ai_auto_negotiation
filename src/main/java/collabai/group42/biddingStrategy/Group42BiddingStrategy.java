@@ -1,5 +1,6 @@
 package collabai.group42.biddingStrategy;
 
+import collabai.group42.opponent.Group42OpponentModel;
 import geniusweb.actions.AbstractAction;
 import geniusweb.actions.Accept;
 import geniusweb.actions.Action;
@@ -7,8 +8,8 @@ import geniusweb.actions.EndNegotiation;
 import geniusweb.actions.Offer;
 import geniusweb.actions.PartyId;
 import collabai.group42.BoaState;
-import collabai.group42.biddingStrategy.BiddingStrategy;
 import geniusweb.issuevalue.Bid;
+import geniusweb.opponentmodel.OpponentModel;
 import geniusweb.profile.Profile;
 import geniusweb.profile.utilityspace.LinearAdditive;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 
@@ -61,7 +63,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
         }
 
         // pick the most beneficial bid from the opponent's perspective
-        return new Offer(me, getNiceBid(bidOptions));
+        return new Offer(me, getNiceBid(bidOptions, boaState));
     }
 
     /**
@@ -91,7 +93,7 @@ public class Group42BiddingStrategy implements BiddingStrategy{
                 return new Accept(me, lastBid);
             return new EndNegotiation(me);
         }
-        return new Offer(me, getNiceBid(bidOptions));
+        return new Offer(me, getNiceBid(bidOptions, boaState));
     }
 
     /**
@@ -99,13 +101,13 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      * @param bidOptions candidate bids
      * @return the nicest bid among 10 random bids at the target utility
      */
-    protected Bid getNiceBid(ImmutableList<Bid> bidOptions) {
+    protected Bid getNiceBid(ImmutableList<Bid> bidOptions, BoaState boaState) {
         long maxIndex = 0;
         double maxUtility = 0.0;
         for (int i = 0; i < bidOptions.size().intValue() && i < 10; i++) {
             long index = ThreadLocalRandom.current()
                     .nextInt(bidOptions.size().intValue());
-            double utility = getOpponentUtility(bidOptions.get(index));
+            double utility = getOpponentUtility(bidOptions.get(index), boaState);
             if (maxUtility < utility) {
                 maxUtility = utility;
                 maxIndex = index;
@@ -268,7 +270,13 @@ public class Group42BiddingStrategy implements BiddingStrategy{
      * @return Estimated utility value of last bid from opponent model.
      * TODO: call the actual API from opponent model
      */
-    protected double getOpponentUtility(Bid pickedBid) {
+    protected double getOpponentUtility(Bid pickedBid, BoaState boaState) {
+        Map<PartyId, OpponentModel> oms = boaState.getOpponentModels();
+        for (PartyId id : oms.keySet()) {
+            if (id == me) continue;
+            Group42OpponentModel om = (Group42OpponentModel) oms.get(id);
+            return om.getUtility(pickedBid).doubleValue();
+        }
         return 0.0;
     }
 
