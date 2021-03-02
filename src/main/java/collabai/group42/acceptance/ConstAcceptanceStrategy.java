@@ -1,9 +1,8 @@
 package collabai.group42.acceptance;
 
-import geniusweb.boa.acceptancestrategy.AcceptanceStrategy;
 import geniusweb.issuevalue.Bid;
 import geniusweb.profile.utilityspace.UtilitySpace;
-import geniusweb.boa.BoaState;
+import collabai.group42.BoaState;
 
 /**
  * Class for a Constant acceptance condition with target utility a
