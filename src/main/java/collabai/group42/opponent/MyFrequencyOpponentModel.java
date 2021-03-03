@@ -28,7 +28,7 @@ import geniusweb.progress.Progress;
  * <p>
  * immutable.
  */
-public class MyFrequencyOpponentModel implements UtilitySpace, OpponentModel {
+public class MyFrequencyOpponentModel implements Group42OpponentModel {
 
     private static final int DECIMALS = 4; // accuracy of our computations.
     private static int serial = 1; // counter for auto name generation
@@ -59,8 +59,8 @@ public class MyFrequencyOpponentModel implements UtilitySpace, OpponentModel {
      * @param resBid the reservation bid. Can be null
      */
     private MyFrequencyOpponentModel(Domain domain,
-                                   Map<String, Map<Value, Integer>> freqs, BigDecimal total,
-                                   Bid resBid) {
+                                     Map<String, Map<Value, Integer>> freqs, BigDecimal total,
+                                     Bid resBid) {
         if (domain == null) {
             throw new IllegalStateException("domain is not initialized");
         }
@@ -75,7 +75,7 @@ public class MyFrequencyOpponentModel implements UtilitySpace, OpponentModel {
      * @return deep copy of freqs map.
      */
     private static Map<String, Map<Value, Integer>> cloneMap(
-        Map<String, Map<Value, Integer>> freqs) {
+            Map<String, Map<Value, Integer>> freqs) {
         Map<String, Map<Value, Integer>> map = new HashMap<>();
         for (String issue : freqs.keySet()) {
             map.put(issue, new HashMap<Value, Integer>(freqs.get(issue)));
@@ -90,9 +90,9 @@ public class MyFrequencyOpponentModel implements UtilitySpace, OpponentModel {
         }
         // FIXME merge already available frequencies?
         return new MyFrequencyOpponentModel(domain,
-            domain.getIssues().stream().collect(
-                Collectors.toMap(iss -> iss, iss -> new HashMap<>())),
-            BigDecimal.ZERO, resBid);
+                domain.getIssues().stream().collect(
+                        Collectors.toMap(iss -> iss, iss -> new HashMap<>())),
+                BigDecimal.ZERO, resBid);
     }
 
     @Override
@@ -113,7 +113,7 @@ public class MyFrequencyOpponentModel implements UtilitySpace, OpponentModel {
             sum = sum.add(getFraction(issue, bid.getValue(issue)));
         }
         return sum.divide(new BigDecimal(bidFrequencies.size()), DECIMALS,
-            BigDecimal.ROUND_HALF_UP);
+                BigDecimal.ROUND_HALF_UP);
     }
 
     @Override
@@ -153,7 +153,7 @@ public class MyFrequencyOpponentModel implements UtilitySpace, OpponentModel {
         }
 
         return new MyFrequencyOpponentModel(domain, newFreqs,
-            totalBids.add(BigDecimal.ONE), resBid);
+                totalBids.add(BigDecimal.ONE), resBid);
     }
 
     /**
@@ -187,7 +187,7 @@ public class MyFrequencyOpponentModel implements UtilitySpace, OpponentModel {
             freq = 0;
         }
         return new BigDecimal(freq).divide(totalBids, DECIMALS,
-            BigDecimal.ROUND_HALF_UP);
+                BigDecimal.ROUND_HALF_UP);
     }
 
     @Override
@@ -200,10 +200,10 @@ public class MyFrequencyOpponentModel implements UtilitySpace, OpponentModel {
         final int prime = 31;
         int result = 1;
         result = prime * result
-            + ((bidFrequencies == null) ? 0 : bidFrequencies.hashCode());
+                + ((bidFrequencies == null) ? 0 : bidFrequencies.hashCode());
         result = prime * result + ((domain == null) ? 0 : domain.hashCode());
         result = prime * result
-            + ((totalBids == null) ? 0 : totalBids.hashCode());
+                + ((totalBids == null) ? 0 : totalBids.hashCode());
         return result;
     }
 
@@ -237,7 +237,7 @@ public class MyFrequencyOpponentModel implements UtilitySpace, OpponentModel {
     @Override
     public String toString() {
         return "MyFrequencyOpponentModel[" + totalBids + "," + bidFrequencies
-            + "]";
+                + "]";
     }
 
 }
