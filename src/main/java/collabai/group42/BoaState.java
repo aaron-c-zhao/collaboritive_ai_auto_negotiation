@@ -1,8 +1,10 @@
 package collabai.group42;
 
 import collabai.group42.acceptance.AcceptanceStrategy;
+import collabai.group42.acceptance.NextAcceptanceStrategy;
 import collabai.group42.biddingStrategy.BiddingStrategy;
 import geniusweb.actions.Action;
+import geniusweb.actions.Offer;
 import geniusweb.actions.PartyId;
 import geniusweb.boa.BoaParty;
 import geniusweb.boa.InstantiationFailedException;
@@ -178,7 +180,18 @@ public class BoaState {
      * @return true iff {@link #acceptanceStrategy} says the bid is acceptable
      */
     public boolean isAcceptable(Bid bid) {
-        return acceptanceStrategy.isAcceptable(bid, this);
+    	if (acceptanceStrategy instanceof NextAcceptanceStrategy) {
+    		Action nextAction = getAction();
+    		if (nextAction instanceof Offer) {
+    			((NextAcceptanceStrategy) acceptanceStrategy).setNextBid(((Offer) nextAction).getBid());
+    		} else {
+    			((NextAcceptanceStrategy) acceptanceStrategy).setNextBid(null);
+    		}
+    	}
+    	boolean res = acceptanceStrategy.isAcceptable(bid, this);
+    	
+//    	System.out.println("acceptance strategy returned " + res + " at " + getProgress().get(System.currentTimeMillis()));
+        return res;
     }
 
     /**

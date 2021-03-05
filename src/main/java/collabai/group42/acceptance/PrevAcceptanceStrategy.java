@@ -2,10 +2,9 @@ package collabai.group42.acceptance;
 
 import geniusweb.actions.Action;
 import geniusweb.actions.Offer;
-import geniusweb.bidspace.BidsWithUtility;
-import collabai.group42.BoaState;
 import geniusweb.issuevalue.Bid;
 import geniusweb.profile.utilityspace.UtilitySpace;
+import collabai.group42.BoaState;
 
 /**
  * Class for a acceptance condition called ACprev. Works by comparing the incoming bid with the last bid sent.
@@ -24,18 +23,18 @@ public class PrevAcceptanceStrategy implements AcceptanceStrategy {
         for (int i = state.getActionHistory().size() - 1; i >= 0; i--) {
             Action action = state.getActionHistory().get(i);
             
-            // if the current action is an offer made by us opponent
+            // if the current action is an offer made by us
             if (action.getActor() == state.getSettings().getID() && action instanceof Offer) {
 	            Offer offer = (Offer) action;
 	            lastOffer = offer.getBid();
 	            break; // last bid found
             }
         }
+        
+//        System.out.println("last offer: " + utilSpace.getUtility(lastOffer) + "  this offer: " + utilSpace.getUtility(bid));
 
     	// There is no previous offer by the opponent, probably because it is the first move.
         if (lastOffer == null) return false; 
-
-        // return true if bid is better then our last offer
         return utilSpace.getUtility(bid).doubleValue()*a + b > utilSpace.getUtility(lastOffer).doubleValue();
     }
 

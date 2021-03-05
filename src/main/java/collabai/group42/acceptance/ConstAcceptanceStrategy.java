@@ -1,6 +1,7 @@
 package collabai.group42.acceptance;
 
 import geniusweb.issuevalue.Bid;
+import geniusweb.profile.utilityspace.LinearAdditive;
 import geniusweb.profile.utilityspace.UtilitySpace;
 import collabai.group42.BoaState;
 
@@ -13,6 +14,9 @@ public class ConstAcceptanceStrategy implements AcceptanceStrategy {
 
     @Override
     public Boolean isAcceptable(Bid bid, BoaState state) {
+    	UtilitySpace utilSpace = (LinearAdditive) state.getProfile();
+    	
+//    	System.out.println("a: " + a + "  this offer: " + utilSpace.getUtility(bid));
 
         return ((UtilitySpace) state.getProfile()).getUtility(bid)
                 .doubleValue() >= a;
