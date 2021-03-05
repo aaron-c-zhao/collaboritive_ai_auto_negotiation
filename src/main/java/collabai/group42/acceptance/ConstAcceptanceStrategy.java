@@ -18,8 +18,7 @@ public class ConstAcceptanceStrategy implements AcceptanceStrategy {
     	
 //    	System.out.println("a: " + a + "  this offer: " + utilSpace.getUtility(bid));
 
-        return ((UtilitySpace) state.getProfile()).getUtility(bid)
-                .doubleValue() >= a;
+        return utilSpace.getUtility(bid).doubleValue() >= a;
     }
 }
 
