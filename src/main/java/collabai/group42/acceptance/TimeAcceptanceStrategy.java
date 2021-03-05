@@ -9,10 +9,11 @@ import geniusweb.issuevalue.Bid;
  *
  */
 public class TimeAcceptanceStrategy implements AcceptanceStrategy {
-    private final double T = 0.92; // time after which to definitely accept.
+    private final double T = 0.99; // time after which to definitely accept.
 	@Override
 	public Boolean isAcceptable(Bid bid, BoaState state) {
         double progress = state.getProgress().get(System.currentTimeMillis());
+//        System.out.println(progress + " "+ (progress > T));
         return (progress > T - 0.000001);
 	}
 }

@@ -5,6 +5,7 @@ import geniusweb.actions.Action;
 import geniusweb.actions.Offer;
 import geniusweb.boa.InstantiationFailedException;
 import collabai.group42.acceptance.AcceptanceStrategy;
+import collabai.group42.acceptance.NextAcceptanceStrategy;
 import collabai.group42.biddingStrategy.BiddingStrategy;
 import geniusweb.inform.ActionDone;
 import geniusweb.inform.Finished;

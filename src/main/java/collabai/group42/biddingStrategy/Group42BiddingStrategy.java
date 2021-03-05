@@ -58,6 +58,10 @@ public class Group42BiddingStrategy implements BiddingStrategy {
             // should not happen, emergency exit
             return getAlterAction(boaState, targetUtility, lastBid, bidOptions);
         }
+        
+        
+//        // remove later, for testing
+//        System.out.println("making bid with util: " + getUtility(getNiceBid(bidOptions, boaState)));
 
         // pick the most beneficial bid from the opponent's perspective
         return new Offer(me, getNiceBid(bidOptions, boaState));
@@ -115,6 +119,7 @@ public class Group42BiddingStrategy implements BiddingStrategy {
                 maxIndex = index;
             }
         }
+
         return bidOptions.get(maxIndex);
     }
 
@@ -196,7 +201,7 @@ public class Group42BiddingStrategy implements BiddingStrategy {
     protected void setB() {
         double niceness = getNiceness();
         this.b = 0.1 + 0.1 * niceness;
-        System.out.println(niceness);
+//        System.out.println(niceness);
     }
 
     /**
@@ -235,7 +240,7 @@ public class Group42BiddingStrategy implements BiddingStrategy {
             regression.addData(point.get(0), point.get(1));
         }
         double slope = regression.getSlope();
-        System.out.println("slope" + slope);
+//        System.out.println("slope" + slope);
         // map the slope into range [0, 1]
         slope = Math.min(slope, 0.0);
         slope = Math.max(slope, -1.0);

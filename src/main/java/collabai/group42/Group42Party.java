@@ -3,7 +3,8 @@ package collabai.group42;
 
 import collabai.group42.opponent.MyFrequencyOpponentModel;
 import geniusweb.boa.InstantiationFailedException;
-import collabai.group42.acceptance.CombiWAcceptanceStrategy;
+import collabai.group42.acceptance.*;
+import collabai.group42.acceptance.TimeAcceptanceStrategy;
 import collabai.group42.biddingStrategy.Group42BiddingStrategy;
 import collabai.group42.acceptance.AcceptanceStrategy;
 import collabai.group42.biddingStrategy.BiddingStrategy;

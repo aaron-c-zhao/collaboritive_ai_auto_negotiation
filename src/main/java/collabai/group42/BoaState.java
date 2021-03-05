@@ -1,8 +1,10 @@
 package collabai.group42;
 
 import collabai.group42.acceptance.AcceptanceStrategy;
+import collabai.group42.acceptance.NextAcceptanceStrategy;
 import collabai.group42.biddingStrategy.BiddingStrategy;
 import geniusweb.actions.Action;
+import geniusweb.actions.Offer;
 import geniusweb.actions.PartyId;
 import geniusweb.boa.BoaParty;
 import geniusweb.boa.InstantiationFailedException;
@@ -38,6 +40,7 @@ public class BoaState {
     private final BiddingStrategy biddingStrategy;
     private final AcceptanceStrategy acceptanceStrategy;
     private final Reporter reporter;
+    private Action candidate = null;
 
     /**
      * Initial state. Update using with(settings).
@@ -178,7 +181,18 @@ public class BoaState {
      * @return true iff {@link #acceptanceStrategy} says the bid is acceptable
      */
     public boolean isAcceptable(Bid bid) {
-        return acceptanceStrategy.isAcceptable(bid, this);
+    	if (acceptanceStrategy instanceof NextAcceptanceStrategy) {
+    		candidate = getAction();
+    		if (candidate instanceof Offer) {
+    			((NextAcceptanceStrategy) acceptanceStrategy).setNextBid(((Offer)candidate).getBid());
+    		} else {
+    			((NextAcceptanceStrategy) acceptanceStrategy).setNextBid(null);
+    		}
+    	}
+    	boolean res = acceptanceStrategy.isAcceptable(bid, this);
+    	
+//    	System.out.println("acceptance strategy returned " + res + " at " + getProgress().get(System.currentTimeMillis()));
+        return res;
     }
 
     /**
@@ -186,6 +200,7 @@ public class BoaState {
      * {@link #biddingStrategy}
      */
     public Action getAction() {
+        if (candidate != null) return candidate;
         return biddingStrategy.getAction(this);
     }
 
