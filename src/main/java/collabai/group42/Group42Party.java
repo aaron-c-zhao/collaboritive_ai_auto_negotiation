@@ -2,6 +2,7 @@ package collabai.group42;
 
 
 import collabai.group42.opponent.MyFrequencyOpponentModel;
+import collabai.group42.opponent.TimeDependentHardHeadedFrequencyModel;
 import geniusweb.boa.InstantiationFailedException;
 import collabai.group42.acceptance.CombiWAcceptanceStrategy;
 import collabai.group42.biddingStrategy.Group42BiddingStrategy;
@@ -29,7 +30,7 @@ public class Group42Party extends DefaultBoa {
 
     @Override
     protected Class<? extends OpponentModel> getOpponentModel(Settings settings) throws InstantiationFailedException {
-        return MyFrequencyOpponentModel.class;
+        return TimeDependentHardHeadedFrequencyModel.class;
     }
 
     @Override
