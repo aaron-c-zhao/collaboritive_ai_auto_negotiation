@@ -40,6 +40,7 @@ public class BoaState {
     private final BiddingStrategy biddingStrategy;
     private final AcceptanceStrategy acceptanceStrategy;
     private final Reporter reporter;
+    private Action candidate = null;
 
     /**
      * Initial state. Update using with(settings).
@@ -181,9 +182,9 @@ public class BoaState {
      */
     public boolean isAcceptable(Bid bid) {
     	if (acceptanceStrategy instanceof NextAcceptanceStrategy) {
-    		Action nextAction = getAction();
-    		if (nextAction instanceof Offer) {
-    			((NextAcceptanceStrategy) acceptanceStrategy).setNextBid(((Offer) nextAction).getBid());
+    		candidate = getAction();
+    		if (candidate instanceof Offer) {
+    			((NextAcceptanceStrategy) acceptanceStrategy).setNextBid(((Offer)candidate).getBid());
     		} else {
     			((NextAcceptanceStrategy) acceptanceStrategy).setNextBid(null);
     		}
@@ -199,6 +200,7 @@ public class BoaState {
      * {@link #biddingStrategy}
      */
     public Action getAction() {
+        if (candidate != null) return candidate;
         return biddingStrategy.getAction(this);
     }
 
