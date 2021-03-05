@@ -13,18 +13,17 @@ import geniusweb.profile.utilityspace.UtilitySpace;
  * Comparable to CombiWAcceptanceState
  * see: https://homepages.cwi.nl/~baarslag/pub/Acceptance_conditions_in_automated_negotiation.pdf
  */
-public class CombiTAcceptanceStrategy implements AcceptanceStrategy {
-    private final double a = 1;
+public class CombiTAcceptanceStrategy extends NextAcceptanceStrategy {
+	private final double a = 1.02;
     private final double b = 0;
-    private final double T = 0.92;
-    private Bid nextBid = null;
+    private final double T = 0.9;
 
     @Override
     public Boolean isAcceptable(Bid bid, BoaState state) {
         UtilitySpace utilSpace = (LinearAdditive) state.getProfile();
 
         // Check if better then next bid
-        if (nextBid != null && utilSpace.getUtility(bid).doubleValue() * a + b > utilSpace.getUtility(nextBid).doubleValue()) {
+        if (super.isAcceptable(bid, state)) {
             return true;
         }
 
@@ -40,16 +39,14 @@ public class CombiTAcceptanceStrategy implements AcceptanceStrategy {
 	            if (highestUtil < utilSpace.getUtility(offer.getBid()).doubleValue()) highestUtil = utilSpace.getUtility(offer.getBid()).doubleValue();
             }
         }
+            
+//        System.out.println("best offer so far offer: " + highestUtil + "  this offer: " + utilSpace.getUtility(bid));
 
      // if past T and bid is the best bid we received so far.
-        if (state.getProgress().get(System.currentTimeMillis()) > T && utilSpace.getUtility(bid).doubleValue() > highestUtil) {
+        if (state.getProgress().get(System.currentTimeMillis()) * a + b> T && utilSpace.getUtility(bid).doubleValue() > highestUtil) {
             return true;
         }
 
         return false;
-    }
-
-    public void setNextBid(Bid bid) {
-        this.nextBid = bid;
     }
 }

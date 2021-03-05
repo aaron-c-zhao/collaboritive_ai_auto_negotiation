@@ -32,7 +32,6 @@ public class ExtendedUtilSpace {
 		bidutils = new BidsWithUtility(utilspace);
 		computeMinMax();
 		this.tolerance = computeTolerance();
-
 	}
 
 	/**
