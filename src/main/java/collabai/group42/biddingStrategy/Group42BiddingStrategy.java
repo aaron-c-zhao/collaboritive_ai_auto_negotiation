@@ -154,7 +154,7 @@ public class Group42BiddingStrategy implements BiddingStrategy {
         else if (progress < 0.8) {
             setB();
             return (getTimeDependUtility(progress)) * (this.max - this.min) + this.min;
-        }git
+        }
         //in the later half of the negotiation, the toughness of the opponent affect the concede ratio.
         else if (progress < 0.99) {
             setA();
