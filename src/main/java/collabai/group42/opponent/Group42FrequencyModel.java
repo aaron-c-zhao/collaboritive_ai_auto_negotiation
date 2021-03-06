@@ -26,7 +26,7 @@ import org.apache.commons.math3.analysis.function.Gaussian;
 import org.apache.commons.math3.distribution.LaplaceDistribution;
 import org.apache.commons.math3.distribution.TriangularDistribution;
 
-public class TimeDependentHardHeadedFrequencyModel implements Group42OpponentModel {
+public class Group42FrequencyModel implements Group42OpponentModel {
 
     private static final int DECIMALS = 4; // accuracy of our computations.
     private final Domain domain;
@@ -40,7 +40,7 @@ public class TimeDependentHardHeadedFrequencyModel implements Group42OpponentMod
     private final Bid resBid;
     private LinearAdditiveUtilitySpace laus;
 
-    public TimeDependentHardHeadedFrequencyModel() {
+    public Group42FrequencyModel() {
         domain = null;
         amountOfIssues = BigDecimal.ZERO;
         goldenValue = BigDecimal.ZERO;
@@ -53,7 +53,7 @@ public class TimeDependentHardHeadedFrequencyModel implements Group42OpponentMod
         laus = null;
     }
 
-    public TimeDependentHardHeadedFrequencyModel(Domain domain, Map<String, ValueSetUtilities> utils, Map<String, BigDecimal> weights, BigDecimal learnCoef, BigDecimal learnValueAddition, BigDecimal amountOfIssues, BigDecimal goldenValue, Bid resBid, Bid previousBid) {
+    public Group42FrequencyModel(Domain domain, Map<String, ValueSetUtilities> utils, Map<String, BigDecimal> weights, BigDecimal learnCoef, BigDecimal learnValueAddition, BigDecimal amountOfIssues, BigDecimal goldenValue, Bid resBid, Bid previousBid) {
         this.domain = domain;
         this.utils = utils;
         this.weights = weights;
@@ -113,7 +113,7 @@ public class TimeDependentHardHeadedFrequencyModel implements Group42OpponentMod
             }
         }
 
-        return new TimeDependentHardHeadedFrequencyModel(domain, utils, weights, learnCoef, learnValueAddition, amountOfIssues, goldenValue, resBid, null);
+        return new Group42FrequencyModel(domain, utils, weights, learnCoef, learnValueAddition, amountOfIssues, goldenValue, resBid, null);
     }
 
     /**
@@ -174,7 +174,7 @@ public class TimeDependentHardHeadedFrequencyModel implements Group42OpponentMod
             }
         });
 
-        return new TimeDependentHardHeadedFrequencyModel(domain, utils, weights, learnCoef, learnValueAddition, amountOfIssues, goldenValue, resBid, newBid);
+        return new Group42FrequencyModel(domain, utils, weights, learnCoef, learnValueAddition, amountOfIssues, goldenValue, resBid, newBid);
     }
 
     /**
@@ -255,9 +255,12 @@ public class TimeDependentHardHeadedFrequencyModel implements Group42OpponentMod
             count = count.add(newAmount);
         }
 
+        /**
+         * y=a*(1-ct^3)
+         */
         private BigDecimal getTimeBasedIncrement(BigDecimal amount, double time) {
             // return amount.multiply(BigDecimal.valueOf(Math.exp(-DECAY_COEFFICIENT * time)));
-            return amount.multiply(BigDecimal.valueOf(time*time*time*DECAY_COEFFICIENT));
+            return amount.multiply(BigDecimal.ONE.subtract(BigDecimal.valueOf(time * time * time * DECAY_COEFFICIENT)));
         }
 
         @Override
@@ -303,14 +306,9 @@ public class TimeDependentHardHeadedFrequencyModel implements Group42OpponentMod
 
     /**
      * Use KDE to estimate number value set utility.
-     * 1. choose appropriate kernel
-     * 2. calculate appropriate bandwidth and amplitude
-     * 3. perform KDE each time we receive a value
-     * 4. apply time dependent decreasing function to change amplitude f
-     * 5. use lowest estimate as lowerUtility and highest estimate as upperUtility
      */
     private static class KDE implements ValueSetUtilities {
-        private static final double MININTENSITY = 0.75;
+        private static final double MIN_INTENSITY = 0.8;
         private final BigDecimal lowValue, highValue, step;
         private final BigDecimal numValues;
         private final BigDecimal triangularNormalRange, triangularVariation;
@@ -406,14 +404,16 @@ public class TimeDependentHardHeadedFrequencyModel implements Group42OpponentMod
         /**
          * Linear decreasing mapping function that maps [0, 1] of progress to [1, m].
          * p=progress, m = minimum mapped intensity
-         * y = (1-m)(1-x)+m
+         * (y = (1-m)(1-x)+m) old
+         * y = 1-cp^3
          */
         public BigDecimal mapProgressToBandwidth(double progress) {
-            return BigDecimal.valueOf((1 - MININTENSITY) * (1 - progress) + MININTENSITY);
+            // return BigDecimal.valueOf((1 - MIN_INTENSITY) * (1 - progress) + MIN_INTENSITY);
+            return BigDecimal.ONE.subtract(BigDecimal.valueOf(progress * progress * progress * (1d - MIN_INTENSITY)));
         }
 
         /**
-         * Returns a (symmetrical) triangle distribution
+         * Returns a (symmetrical) triangle distribution (KDE kernel)
          */
         public TriangularDistribution getTriangular(BigDecimal center, BigDecimal width) {
             return new TriangularDistribution(center.subtract(width).doubleValue(), center.doubleValue(), center.add(width).doubleValue());
