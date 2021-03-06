@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class Group42TicForTacTest {
 
-    private static final double EPSILON = 1e-4;
+    private static final double EPSILON = 1e-2;
     private static final PartyId PARTY1 = new PartyId("party1");
     private static final String PROFILE = "src/test/resources/testprofile.json";
     private static final String SAOP = "SAOP";
@@ -90,13 +90,12 @@ public class Group42TicForTacTest {
     @Test
     public void testProgressFirstPhase() {
         double pro = 0.05;
-        Group42BiddingStrategy bsInit = new Group42BiddingStrategy();
+        Group42BiddingStrategy bsInit = new Group42TicForTac();
         when(progress.get(any())).thenReturn(pro);
         when(opponentModel.getUtility(any())).thenReturn(BigDecimal.valueOf(0.5));
         Action action = bsInit.getAction(boaState);
 
-
-        assertEquals((1 - pro / 10) * bsInit.getMax(), bsInit.getTargetUtility(0.05), EPSILON);
+        assertEquals((1.0 - pro * 0.1) * bsInit.getMax(), bsInit.getTargetUtility(pro), EPSILON);
     }
 
     @Test
