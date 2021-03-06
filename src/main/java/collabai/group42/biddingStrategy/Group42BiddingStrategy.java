@@ -30,7 +30,7 @@ public class Group42BiddingStrategy implements BiddingStrategy {
     protected ExtendedUtilSpace bidSpace = null;
     protected PartyId me;
     private double min, max;
-    private double a = 4.0, b = 0.15;
+    private double a = 5.0, b = 0.1;
     protected LinkedList<List<Double>> recentBids = new LinkedList<>();
 
     @Override
@@ -200,8 +200,8 @@ public class Group42BiddingStrategy implements BiddingStrategy {
      */
     protected void setB() {
         double niceness = getNiceness();
-        this.b = 0.1 + 0.1 * niceness;
-//        System.out.println(niceness);
+        this.b = 0.1 + 0.2 * niceness;
+        // System.out.println(niceness);
     }
 
     /**
@@ -209,7 +209,7 @@ public class Group42BiddingStrategy implements BiddingStrategy {
      */
     protected void setA() {
         double niceness = getNiceness();
-        this.a = 4.0 + 2.0 * niceness;
+        this.a = 5.0 + 2.0 * niceness;
     }
 
 
@@ -240,7 +240,7 @@ public class Group42BiddingStrategy implements BiddingStrategy {
             regression.addData(point.get(0), point.get(1));
         }
         double slope = regression.getSlope();
-//        System.out.println("slope" + slope);
+        // System.out.println("slope" + slope);
         // map the slope into range [0, 1]
         slope = Math.min(slope, 0.0);
         slope = Math.max(slope, -1.0);

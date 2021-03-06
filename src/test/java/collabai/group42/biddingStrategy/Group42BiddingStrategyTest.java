@@ -174,14 +174,14 @@ public class Group42BiddingStrategyTest {
     public void testSetBAndGetB() {
         doReturn(0.2).when(biddingStrategy).getNiceness();
         biddingStrategy.setB();
-        assertEquals(0.1 + 0.1 * biddingStrategy.getNiceness(), biddingStrategy.getB(), EPSILON);
+        assertEquals(0.1 + 0.2 * biddingStrategy.getNiceness(), biddingStrategy.getB(), EPSILON);
     }
 
     @Test
     public void testSetAAndGetA() {
         doReturn(0.2).when(biddingStrategy).getNiceness();
         biddingStrategy.setA();
-        assertEquals(4.0 + 2.0 * biddingStrategy.getNiceness(), biddingStrategy.getA(), EPSILON);
+        assertEquals(5.0 + 2.0 * biddingStrategy.getNiceness(), biddingStrategy.getA(), EPSILON);
     }
 
     @Test
