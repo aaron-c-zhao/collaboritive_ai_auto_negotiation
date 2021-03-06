@@ -30,7 +30,7 @@ public class Group42BiddingStrategy implements BiddingStrategy {
     protected ExtendedUtilSpace bidSpace = null;
     protected PartyId me;
     private double min, max;
-    private double a = 4.0, b = 0.15;
+    private double a = 5.0, b = 0.1;
     protected LinkedList<List<Double>> recentBids = new LinkedList<>();
 
     @Override
@@ -200,7 +200,7 @@ public class Group42BiddingStrategy implements BiddingStrategy {
      */
     protected void setB() {
         double niceness = getNiceness();
-        this.b = 0.1 + 0.1 * niceness;
+        this.b = 0.1 + 0.2 * niceness;
         // System.out.println(niceness);
     }
 
@@ -209,7 +209,7 @@ public class Group42BiddingStrategy implements BiddingStrategy {
      */
     protected void setA() {
         double niceness = getNiceness();
-        this.a = 4.0 + 2.0 * niceness;
+        this.a = 5.0 + 2.0 * niceness;
     }
 
 
