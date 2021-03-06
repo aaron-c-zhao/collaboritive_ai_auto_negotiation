@@ -147,18 +147,18 @@ public class Group42BiddingStrategy implements BiddingStrategy {
      */
     protected double getTargetUtility(Double progress) {
         if (progress < 0.1) {
-            return (1 - progress * 0.1) * this.max;
+            return (1 - progress * 0.1) * (this.max - this.min) + this.min;
         }
         //in the middle part of the negotiation, the toughness of the opponent affect the inflection point
         //which is when to concede at a faster rate
         else if (progress < 0.8) {
             setB();
-            return (getTimeDependUtility(progress)) * this.max;
-        }
+            return (getTimeDependUtility(progress)) * (this.max - this.min) + this.min;
+        }git
         //in the later half of the negotiation, the toughness of the opponent affect the concede ratio.
         else if (progress < 0.99) {
             setA();
-            return (getTimeDependUtility(progress)) * this.max;
+            return (getTimeDependUtility(progress)) * (this.max - this.min) + this.min;
         }
         //only one round left, set the target utility to reservation value.
         else {
