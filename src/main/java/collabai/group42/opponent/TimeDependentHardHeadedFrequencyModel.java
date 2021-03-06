@@ -18,7 +18,6 @@ import geniusweb.issuevalue.NumberValueSet;
 import geniusweb.issuevalue.Value;
 import geniusweb.issuevalue.ValueSet;
 import geniusweb.opponentmodel.OpponentModel;
-import geniusweb.profile.utilityspace.DiscreteValueSetUtilities;
 import geniusweb.profile.utilityspace.LinearAdditiveUtilitySpace;
 import geniusweb.profile.utilityspace.NumberValueSetUtilities;
 import geniusweb.profile.utilityspace.ValueSetUtilities;
@@ -27,18 +26,9 @@ import org.apache.commons.math3.analysis.function.Gaussian;
 import org.apache.commons.math3.distribution.LaplaceDistribution;
 import org.apache.commons.math3.distribution.TriangularDistribution;
 
-/**
- * HardHeadedFrequency Model.
- * <p>
- * Default: learning coef l = 0.2; learnValueAddition v = 1.0
- * <p>
- * paper: https://ii.tudelft.nl/sites/default/files/boa.pdf
- */
-public class HardHeadedFrequencyModel implements Group42OpponentModel {
+public class TimeDependentHardHeadedFrequencyModel implements Group42OpponentModel {
 
     private static final int DECIMALS = 4; // accuracy of our computations.
-    private final Map<String, Issue> utilitySpace;
-    private final Bid resBid;
     private final Domain domain;
     private final Map<String, ValueSetUtilities> utils;
     private final Map<String, BigDecimal> weights;
@@ -47,10 +37,24 @@ public class HardHeadedFrequencyModel implements Group42OpponentModel {
     private final BigDecimal learnValueAddition;
     private final BigDecimal amountOfIssues;
     private final BigDecimal goldenValue;
+    private final Bid resBid;
+    private LinearAdditiveUtilitySpace laus;
 
-    public HardHeadedFrequencyModel(Domain domain, Map<String, Issue> utilitySpace, Map<String, ValueSetUtilities> utils, Map<String, BigDecimal> weights, BigDecimal learnCoef, BigDecimal learnValueAddition, BigDecimal amountOfIssues, BigDecimal goldenValue, Bid resBid, Bid previousBid) {
+    public TimeDependentHardHeadedFrequencyModel() {
+        domain = null;
+        amountOfIssues = BigDecimal.ZERO;
+        goldenValue = BigDecimal.ZERO;
+        learnValueAddition = BigDecimal.ZERO;
+        learnCoef = BigDecimal.ZERO;
+        previousBid = null;
+        weights = null;
+        utils = null;
+        resBid = null;
+        laus = null;
+    }
+
+    public TimeDependentHardHeadedFrequencyModel(Domain domain, Map<String, ValueSetUtilities> utils, Map<String, BigDecimal> weights, BigDecimal learnCoef, BigDecimal learnValueAddition, BigDecimal amountOfIssues, BigDecimal goldenValue, Bid resBid, Bid previousBid) {
         this.domain = domain;
-        this.utilitySpace = utilitySpace;
         this.utils = utils;
         this.weights = weights;
         this.learnCoef = learnCoef;
@@ -59,16 +63,9 @@ public class HardHeadedFrequencyModel implements Group42OpponentModel {
         this.goldenValue = goldenValue;
         this.resBid = resBid;
         this.previousBid = previousBid;
+        this.laus = null;
     }
 
-    private static Map<String, Issue> cloneMap(Map<String, Issue> utilitySpace) {
-        return new HashMap<>(utilitySpace);
-        // Map<String, Issue> result = new HashMap<>();
-        // for (String issue : utilitySpace.keySet()) {
-        //     result.put(issue, utilitySpace.get(issue).clone());
-        // }
-        // return result;
-    }
 
     /**
      * Initializes the model. This function must be called first after
@@ -88,25 +85,25 @@ public class HardHeadedFrequencyModel implements Group42OpponentModel {
         BigDecimal learnCoef = new BigDecimal("0.2");
         BigDecimal learnValueAddition = BigDecimal.ONE;
         BigDecimal amountOfIssues = new BigDecimal(domain.getIssues().size());
-        BigDecimal goldenValue = learnCoef.divide(amountOfIssues, DECIMALS, BigDecimal.ROUND_HALF_UP);
-        BigDecimal commonWeight = BigDecimal.ONE.divide(amountOfIssues, DECIMALS, BigDecimal.ROUND_HALF_UP);
+        BigDecimal goldenValue = learnCoef.divide(amountOfIssues, DECIMALS, BigDecimal.ROUND_HALF_EVEN);
+        BigDecimal commonWeight = BigDecimal.ONE.divide(amountOfIssues, DECIMALS, BigDecimal.ROUND_HALF_EVEN);
 
-        HashMap<String, Issue> us = new HashMap<>();
+        // HashMap<String, Issue> us = new HashMap<>();
         Map<String, ValueSetUtilities> utils = new HashMap<>();
         Map<String, BigDecimal> weights = new HashMap<>();
         for (String issue : domain.getIssues()) {
             // for utils and weights
             weights.put(issue, commonWeight);
             ValueSet vs = domain.getValues(issue);
+
             if (vs instanceof DiscreteValueSet) {
                 DiscreteValueSet dvs = (DiscreteValueSet) vs;
-                dvs.getValues();
 
                 Map<DiscreteValue, BigDecimal> discreteEstimation = new HashMap<>();
-                for (Value x : domain.getValues(issue)) {
-                    discreteEstimation.put((DiscreteValue) x, BigDecimal.ONE);
+                for (DiscreteValue x : dvs.getValues()) {
+                    discreteEstimation.put(x, BigDecimal.ONE);
                 }
-                utils.put(issue, new DiscreteValueSetUtilities(discreteEstimation));
+                utils.put(issue, new DiscreteUtilities(discreteEstimation));
             }
 
             if (vs instanceof NumberValueSet) {
@@ -114,18 +111,9 @@ public class HardHeadedFrequencyModel implements Group42OpponentModel {
                 KDE kde = new KDE(nvs.getRange().getLow(), nvs.getRange().getHigh(), nvs.getRange().getStep());
                 utils.put(issue, kde);
             }
-            // ----
-
-            Issue newIssue = new Issue();
-
-            for (Value x : domain.getValues(issue)) {
-                newIssue.values.put(x, BigDecimal.ONE);
-            }
-            newIssue.weight = commonWeight;
-            us.put(issue, newIssue);
         }
 
-        return new HardHeadedFrequencyModel(domain, us, utils, weights, learnCoef, learnValueAddition, amountOfIssues, goldenValue, resBid, null);
+        return new TimeDependentHardHeadedFrequencyModel(domain, utils, weights, learnCoef, learnValueAddition, amountOfIssues, goldenValue, resBid, null);
     }
 
     /**
@@ -162,68 +150,36 @@ public class HardHeadedFrequencyModel implements Group42OpponentModel {
             }
 
             BigDecimal totalSum = BigDecimal.ONE.add(goldenValue.multiply(new BigDecimal(numberUnchanged)));
-            BigDecimal maximumWeight = BigDecimal.ONE.subtract(amountOfIssues.multiply(goldenValue).divide(totalSum, DECIMALS, BigDecimal.ROUND_HALF_UP));
+            BigDecimal maximumWeight = BigDecimal.ONE.subtract(amountOfIssues.multiply(goldenValue).divide(totalSum, DECIMALS, BigDecimal.ROUND_HALF_EVEN));
 
-            // TODO make utils and weights be final (make clone and edit)
             for (String issue : lastDiffSet.keySet()) {
                 BigDecimal weight = weights.get(issue);
                 BigDecimal newWeight;
 
                 if (lastDiffSet.get(issue) == 0 && maximumWeight.compareTo(weight) > 0) {
-                    newWeight = weight.add(goldenValue).divide(totalSum, DECIMALS, BigDecimal.ROUND_HALF_UP);
+                    newWeight = weight.add(goldenValue).divide(totalSum, DECIMALS, BigDecimal.ROUND_HALF_EVEN);
                 } else {
-                    newWeight = weight.divide(totalSum, DECIMALS, BigDecimal.ROUND_HALF_UP);
+                    newWeight = weight.divide(totalSum, DECIMALS, BigDecimal.ROUND_HALF_EVEN);
                 }
 
                 weights.put(issue, newWeight);
             }
-
-            newBid.getIssueValues().forEach((issue, value) -> {
-                if (value instanceof NumberValue) {
-                    ((KDE) utils.get(issue)).addValue(value, weights.get(issue), time);
-                } else if (value instanceof DiscreteValue) {
-                    ((DiscreteUtilities) utils.get(issue)).addValue(value, learnValueAddition, time);
-                }
-            });
         }
 
-        // ------ other version
-        // Map<String, Issue> newUtilitySpace = cloneMap(utilitySpace);
-        //
-        // if (previousBid != null) {
-        //     int numberUnchanged = 0;
-        //     HashMap<String, Integer> lastDiffSet = determineDifference(previousBid, newBid);
-        //     for (String issue : lastDiffSet.keySet()) {
-        //         if (lastDiffSet.get(issue) == 0) {
-        //             numberUnchanged++;
-        //         }
-        //     }
-        //
-        //     BigDecimal totalSum = BigDecimal.ONE.add(goldenValue.multiply(new BigDecimal(numberUnchanged)));
-        //     BigDecimal maximumWeight = BigDecimal.ONE.subtract(amountOfIssues.multiply(goldenValue).divide(totalSum, DECIMALS, BigDecimal.ROUND_HALF_UP));
-        //
-        //     for (String issue : lastDiffSet.keySet()) {
-        //         BigDecimal weight = newUtilitySpace.get(issue).weight;
-        //         BigDecimal newWeight;
-        //
-        //         if (lastDiffSet.get(issue) == 0 && maximumWeight.compareTo(weight) > 0) {
-        //             newWeight = weight.add(goldenValue).divide(totalSum, DECIMALS, BigDecimal.ROUND_HALF_UP);
-        //         } else {
-        //             newWeight = weight.divide(totalSum, DECIMALS, BigDecimal.ROUND_HALF_UP);
-        //         }
-        //
-        //         newUtilitySpace.get(issue).weight = newWeight;
-        //     }
-        //
-        //     newBid.getIssueValues().forEach((issue, value) -> {
-        //         BigDecimal eval = newUtilitySpace.get(issue).values.get(value);
-        //         newUtilitySpace.get(issue).values.put(value, eval.add(learnValueAddition));
-        //     });
-        // }
+        newBid.getIssueValues().forEach((issue, value) -> {
+            if (value instanceof NumberValue) {
+                ((KDE) utils.get(issue)).addValue(value, weights.get(issue), time);
+            } else if (value instanceof DiscreteValue) {
+                ((DiscreteUtilities) utils.get(issue)).addValue(value, learnValueAddition, time);
+            }
+        });
 
-        return new HardHeadedFrequencyModel(domain, utilitySpace, utils, weights, learnCoef, learnValueAddition, amountOfIssues, goldenValue, resBid, newBid);
+        return new TimeDependentHardHeadedFrequencyModel(domain, utils, weights, learnCoef, learnValueAddition, amountOfIssues, goldenValue, resBid, newBid);
     }
 
+    /**
+     * Returns if there were any changes to previous bid.
+     */
     private HashMap<String, Integer> determineDifference(Bid first, Bid second) {
         HashMap<String, Integer> diff = new HashMap<>();
         for (String issue : domain.getIssues()) {
@@ -234,121 +190,89 @@ public class HardHeadedFrequencyModel implements Group42OpponentModel {
         return diff;
     }
 
-    /**
-     * @param bid the {@link Bid} to be evaluated
-     * @return the utility value of this bid. This MUST return a number in the range
-     * [0,1]. 0 means preferred the least and 1 means preferred the most.
-     */
     @Override
     public BigDecimal getUtility(Bid bid) {
-        return getUtilitySpace().getUtility(bid);
+        if (laus == null) {
+            normaliseWeights();
+            laus = getUtilitySpace();
+        }
+        return laus.getUtility(bid);
     }
 
     private LinearAdditiveUtilitySpace getUtilitySpace() {
         return new LinearAdditiveUtilitySpace(domain, "Opponent", utils, weights, resBid);
     }
 
-    /**
-     * @return the name of this profile. Must be simple name (a-Z, 0-9)
-     */
     @Override
     public String getName() {
-        return "Hard Headed Frequency Model";
+        return "Time Dependent Hard Headed Frequency Model";
     }
 
-    /**
-     * @return the domain in which this profile is defined.
-     */
     @Override
     public Domain getDomain() {
         return domain;
     }
 
-    /**
-     * @return a (hypothetical) bid that is the best alternative to a
-     * non-agreement. Only bids that are equal or better should be
-     * accepted. If a negotiation does not reach an agreement, the party
-     * can get this offer somewhere else. This replaces the older notion
-     * of a "reservation value" and is more general. If null, there is
-     * no reservation bid and any agreement is better than no agreement.
-     */
     @Override
     public Bid getReservationBid() {
         return resBid;
     }
 
-    private static class Issue implements Cloneable {
-        public BigDecimal weight;
-        public HashMap<Value, BigDecimal> values;
-
-        @Override
-        public Issue clone() {
-            Issue newIssue = new Issue();
-            newIssue.weight = weight;
-            newIssue.values = new HashMap<>();
-            for (Value value : values.keySet()) {
-                newIssue.values.put(value, values.get(value));
-            }
-            return newIssue;
+    /**
+     * Makes sure that the sum of weights are 1, at the expense of the first issue.
+     */
+    private void normaliseWeights() {
+        BigDecimal extra = BigDecimal.ONE.subtract(weights.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add));
+        for (String issue : weights.keySet()) {
+            weights.computeIfPresent(issue, (s, bigDecimal) -> bigDecimal.add(extra));
+            return;
         }
     }
 
     private static class DiscreteUtilities implements ValueSetUtilities {
 
-        private HashMap<DiscreteValue, BigDecimal> valueUtilities = new HashMap<>();
+        private static final double DECAY_COEFFICIENT = 0.2d;
+        private final HashMap<DiscreteValue, BigDecimal> valueFrequencies = new HashMap<>();
+        private BigDecimal count;
 
-        /**
-         * create new object based on the given mapping from values to utilities.
-         *
-         * @param valueUtils map with key {@link DiscreteValue}s and value a Double
-         *                   in the range [0,1].
-         * @throws NullPointerException     if one of the args is null
-         * @throws IllegalArgumentException if values are not in range [0,1].
-         */
-        public DiscreteUtilities(
-          Map<DiscreteValue, BigDecimal> valueUtils) {
+        public DiscreteUtilities(Map<DiscreteValue, BigDecimal> valueUtils) {
             if (valueUtils == null) {
                 throw new NullPointerException("valueUtils==null");
             }
 
-            this.valueUtilities.putAll(valueUtils);
+            this.valueFrequencies.putAll(valueUtils);
+            count = BigDecimal.valueOf(valueFrequencies.size());
         }
 
         public void addValue(Value value, BigDecimal amount, double time) {
             if (!(value instanceof DiscreteValue)) {
                 return;
             }
+
             BigDecimal newAmount = getTimeBasedIncrement(amount, time);
-            valueUtilities.put((DiscreteValue) value, valueUtilities.get(value).add(newAmount));
-            normalize(newAmount);
+            // BigDecimal newAmount = amount;
+            valueFrequencies.put((DiscreteValue) value, valueFrequencies.get(value).add(newAmount));
+            count = count.add(newAmount);
         }
 
-        /**
-         * As time goes e^(-5x)
-         */
         private BigDecimal getTimeBasedIncrement(BigDecimal amount, double time) {
-            return amount.multiply(BigDecimal.valueOf(Math.exp(-5 * time)));
-        }
-
-        // TODO make amount time dependent
-        private void normalize(BigDecimal amount) {
-            BigDecimal div = BigDecimal.ONE.add(amount);
-            valueUtilities.replaceAll((d, v) -> valueUtilities.get(d).divide(div, DECIMALS, BigDecimal.ROUND_HALF_UP));
+            // return amount.multiply(BigDecimal.valueOf(Math.exp(-DECAY_COEFFICIENT * time)));
+            return amount.multiply(BigDecimal.valueOf(time*time*time*DECAY_COEFFICIENT));
         }
 
         @Override
         public BigDecimal getUtility(Value value) {
-            if (!valueUtilities.containsKey(value)) {
-                return BigDecimal.ZERO;
+            if ((value instanceof DiscreteValue) && valueFrequencies.containsKey(value)) {
+                return valueFrequencies.get(value).divide(count, DECIMALS, BigDecimal.ROUND_HALF_EVEN);
             }
-            return valueUtilities.get(value);
+            return BigDecimal.ZERO;
         }
 
         /**
          * @return copy of the value-utility pair map.
          */
         public Map<DiscreteValue, BigDecimal> getUtilities() {
-            return Collections.unmodifiableMap(valueUtilities);
+            return Collections.unmodifiableMap(valueFrequencies);
         }
 
         @Override
@@ -358,12 +282,22 @@ public class HardHeadedFrequencyModel implements Group42OpponentModel {
                   + valueset;
             }
             DiscreteValueSet discvalueset = (DiscreteValueSet) valueset;
-            if (!valueUtilities.keySet()
+            if (!valueFrequencies.keySet()
               .equals(new HashSet<>(discvalueset.getValues())))
                 return "The values in the set " + valueset
                   + " do not match the values mapped to utilities "
-                  + valueUtilities.keySet();
+                  + valueFrequencies.keySet();
             return null;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("DiscreteUtilities\n");
+            for (DiscreteValue value : valueFrequencies.keySet()) {
+                sb.append(value).append(": ").append(getUtility(value)).append("\n");
+            }
+            return sb.toString();
         }
     }
 
@@ -377,89 +311,82 @@ public class HardHeadedFrequencyModel implements Group42OpponentModel {
      */
     private static class KDE implements ValueSetUtilities {
         private static final double MININTENSITY = 0.75;
-        private BigDecimal lowValue, highValue, step;
-        private BigDecimal numValues, totalArea;
-        private BigDecimal lowerUtility, upperUtility;
-        private BigDecimal triangularNormalRange, triangularVariation;
-        private LinkedHashMap<NumberValue, BigDecimal> values;
+        private final BigDecimal lowValue, highValue, step;
+        private final BigDecimal numValues;
+        private final BigDecimal triangularNormalRange, triangularVariation;
+        private final LinkedHashMap<BigDecimal, BigDecimal> values;
+        private BigDecimal totalArea;
+        private NumberValueSetUtilities nvsu;
 
         public KDE(BigDecimal lowerBound, BigDecimal upperBound, BigDecimal step) {
             this.lowValue = lowerBound;
             this.highValue = upperBound;
             this.step = step;
             this.numValues = highValue.subtract(lowValue).divideToIntegralValue(step);
-            this.triangularNormalRange = highValue.subtract(lowValue).divide(BigDecimal.valueOf(2), DECIMALS, BigDecimal.ROUND_HALF_UP);
-            this.triangularVariation = highValue.subtract(lowValue).divide(BigDecimal.valueOf(4), DECIMALS, BigDecimal.ROUND_HALF_UP);
+            this.triangularNormalRange = highValue.subtract(lowValue).divide(BigDecimal.valueOf(2), DECIMALS, BigDecimal.ROUND_HALF_EVEN);
+            this.triangularVariation = highValue.subtract(lowValue).divide(BigDecimal.valueOf(4), DECIMALS, BigDecimal.ROUND_HALF_EVEN);
             this.values = new LinkedHashMap<>(numValues.intValue());
 
             // set uniform distribution
-            totalArea = BigDecimal.ONE;
-            BigDecimal weight = BigDecimal.ONE.divide(numValues, DECIMALS, BigDecimal.ROUND_HALF_UP);
-            for (BigDecimal i = lowValue; i.compareTo(highValue) < 0; i = i.add(step)) {
-                values.put(new NumberValue(i), weight);
+            totalArea = BigDecimal.ZERO;
+            // BigDecimal weight = BigDecimal.ONE.divide(numValues, DECIMALS, BigDecimal.ROUND_HALF_EVEN);
+            for (BigDecimal i = lowValue; i.compareTo(highValue) <= 0; i = i.add(step)) {
+                values.put(i, BigDecimal.ZERO);
             }
-            lowerUtility = weight;
-            upperUtility = weight;
+
+            nvsu = null;
         }
 
-        /**
-         * -3sigma ~ 3sigma
-         *
-         * @param value
-         */
         public void addValue(Value value, BigDecimal issueWeight, double progress) {
             if (!(value instanceof NumberValue)) {
                 return;
             }
 
             BigDecimal center = ((NumberValue) value).getValue();
-            BigDecimal bandwidth = mapIssueWeight(issueWeight);
+            // BigDecimal bandwidth = mapIssueWeight(issueWeight);
+            BigDecimal bandwidth = triangularNormalRange;
             BigDecimal factor = mapProgressToBandwidth(progress);
             TriangularDistribution td = getTriangular(center, bandwidth);
 
             // add probability for center (only once)
-            BigDecimal probCenter = factor.multiply(BigDecimal.valueOf(td.probability(center.doubleValue())));
-            values.computeIfPresent(new NumberValue(center), (numberValue, bigDecimal) -> {
+            BigDecimal probCenter = factor.multiply(getProbability(td, center));
+            values.computeIfPresent(center, (numberValue, bigDecimal) -> {
                 totalArea = totalArea.add(probCenter);
-                BigDecimal result = bigDecimal.add(probCenter); 
-                if(result.compareTo(upperUtility) > 0) {
-                    upperUtility = result;
-                }
+                BigDecimal result = bigDecimal.add(probCenter);
                 return result;
             });
 
             // add probabilities to both sides of center
             for (BigDecimal i = step; i.compareTo(bandwidth) < 0; i = i.add(step)) {
                 BigDecimal bucket = center.subtract(i);
-                BigDecimal prob = factor.multiply(BigDecimal.valueOf(td.probability(bucket.doubleValue())));
-                // td.probability(bucket.subtract(step).doubleValue(), bucket.doubleValue());
+                BigDecimal prob = factor.multiply(getProbability(td, bucket));
 
                 // add to left of center
-                values.computeIfPresent(new NumberValue(bucket), (numberValue, bigDecimal) -> {
-                    totalArea = totalArea.add(prob);
+                values.computeIfPresent(bucket, (numberValue, bigDecimal) -> {
+                    // totalArea = totalArea.add(prob);
                     BigDecimal result = bigDecimal.add(prob);
-                    if(result.compareTo(upperUtility) > 0) {
-                        upperUtility = result;
-                    }
                     return result;
                 });
 
                 // add to right of center
-                values.computeIfPresent(new NumberValue(center.add(i)), (numberValue, bigDecimal) -> {
-                    totalArea = totalArea.add(prob);
+                values.computeIfPresent(center.add(i), (numberValue, bigDecimal) -> {
+                    // totalArea = totalArea.add(prob);
                     BigDecimal result = bigDecimal.add(prob);
-                    if(result.compareTo(upperUtility) > 0) {
-                        upperUtility = result;
-                    }
                     return result;
                 });
             }
-            // Update lowerUtility
-            lowerUtility = values.values().stream().min(BigDecimal::compareTo).orElse(lowerUtility);
+
+            nvsu = null;
+        }
+
+        private BigDecimal getProbability(TriangularDistribution td, BigDecimal center) {
+            return BigDecimal.valueOf(td.probability(
+              center.subtract(step.divide(BigDecimal.valueOf(2))).doubleValue(),
+              center.add(step.divide(BigDecimal.valueOf(2))).doubleValue()));
         }
 
         public NumberValueSetUtilities getSetUtilities() {
-            return new NumberValueSetUtilities(lowValue, lowerUtility.divide(totalArea, DECIMALS, BigDecimal.ROUND_HALF_UP), highValue, upperUtility.divide(totalArea, DECIMALS, BigDecimal.ROUND_HALF_UP));
+            return new NumberValueSetUtilities(lowValue, values.get(lowValue).divide(totalArea, DECIMALS, BigDecimal.ROUND_HALF_EVEN), highValue, values.get(highValue).divide(totalArea, DECIMALS, BigDecimal.ROUND_HALF_EVEN));
         }
 
         /**
@@ -482,14 +409,7 @@ public class HardHeadedFrequencyModel implements Group42OpponentModel {
          * y = (1-m)(1-x)+m
          */
         public BigDecimal mapProgressToBandwidth(double progress) {
-            return BigDecimal.valueOf((1 - MININTENSITY) * (1 - progress) - MININTENSITY);
-        }
-
-        /**
-         * Returns a gaussian curve
-         */
-        public Gaussian getGaussian(BigDecimal center, BigDecimal variance) {
-            return new Gaussian(center.doubleValue(), variance.doubleValue());
+            return BigDecimal.valueOf((1 - MININTENSITY) * (1 - progress) + MININTENSITY);
         }
 
         /**
@@ -500,11 +420,14 @@ public class HardHeadedFrequencyModel implements Group42OpponentModel {
         }
 
         /**
-         * returns a laplacian curve
-         *
-         * @param center
-         * @param beta
-         * @return
+         * Returns a gaussian curve
+         */
+        public Gaussian getGaussian(BigDecimal center, BigDecimal variance) {
+            return new Gaussian(center.doubleValue(), variance.doubleValue());
+        }
+
+        /**
+         * Returns a laplacian curve
          */
         public LaplaceDistribution getLaplace(BigDecimal center, BigDecimal beta) {
             return new LaplaceDistribution(center.doubleValue(), beta.doubleValue());
@@ -512,7 +435,10 @@ public class HardHeadedFrequencyModel implements Group42OpponentModel {
 
         @Override
         public BigDecimal getUtility(Value value) {
-            return getSetUtilities().getUtility(value);
+            if (nvsu == null) {
+                nvsu = getSetUtilities();
+            }
+            return nvsu.getUtility(value);
         }
 
         /**
@@ -541,6 +467,15 @@ public class HardHeadedFrequencyModel implements Group42OpponentModel {
             }
 
             return null;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder("KDE{\n");
+            for (BigDecimal value : values.keySet()) {
+                sb.append(value.toPlainString()).append(": ").append(getUtility(new NumberValue(value))).append("\n");
+            }
+            return sb.toString();
         }
     }
 
