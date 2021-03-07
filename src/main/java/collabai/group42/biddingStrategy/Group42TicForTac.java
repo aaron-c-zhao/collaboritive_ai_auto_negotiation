@@ -38,8 +38,9 @@ public class Group42TicForTac extends Group42BiddingStrategy {
 
 
     protected double getTargetUtility(Double progress, Bid lastBid, BoaState boaState) {
-        if (progress < 0.1)
-            return (1 - progress / 10) * this.maxValue;
+        if (progress < 0.1) {
+            return (1.0 - progress * 0.1) * this.maxValue;
+        }
         else if (progress < 0.99){
             updateNashPoint(boaState);
             double dist = getOpponentUtility(lastBid, boaState) / getNashPoint()[1];

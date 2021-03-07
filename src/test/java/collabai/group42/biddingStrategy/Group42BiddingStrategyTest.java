@@ -92,8 +92,8 @@ public class Group42BiddingStrategyTest {
         Group42BiddingStrategy bsInit = new Group42BiddingStrategy();
         when(progress.get(any())).thenReturn(0.05);
         Action action = bsInit.getAction(boaState);
-        System.out.println(bsInit.getTargetUtility(0.05));
-        assertEquals(0.995 * bsInit.getMax(), bsInit.getTargetUtility(0.05), EPSILON);
+        assertEquals(0.995 * (bsInit.getMax() - bsInit.getMin()) + bsInit.getMin()
+                , bsInit.getTargetUtility(0.05), EPSILON);
     }
 
     @Test
@@ -102,7 +102,7 @@ public class Group42BiddingStrategyTest {
         doReturn(0.0).when(biddingStrategy).getNiceness();
         biddingStrategy.setB();
         double expected = (0.99 - Math.pow((progress - biddingStrategy.getB()), biddingStrategy.getA()))
-                * biddingStrategy.getMax();
+                * (biddingStrategy.getMax() - biddingStrategy.getMin()) + biddingStrategy.getMin();
         assertEquals(expected, biddingStrategy.getTargetUtility(progress), EPSILON);
     }
 
@@ -112,7 +112,7 @@ public class Group42BiddingStrategyTest {
         doReturn(0.3).when(biddingStrategy).getNiceness();
         biddingStrategy.setB();
         double expected = (0.99 - Math.pow((progress - biddingStrategy.getB()), biddingStrategy.getA()))
-                * biddingStrategy.getMax();
+                * (biddingStrategy.getMax() - biddingStrategy.getMin()) + biddingStrategy.getMin();
 
         assertEquals(expected, biddingStrategy.getTargetUtility(0.5), EPSILON);
     }
@@ -124,7 +124,7 @@ public class Group42BiddingStrategyTest {
 
         biddingStrategy.setA();
         double expected = (0.99 - Math.pow((progress - biddingStrategy.getB()), biddingStrategy.getA()))
-                * biddingStrategy.getMax();
+                * (biddingStrategy.getMax() - biddingStrategy.getMin()) + biddingStrategy.getMin();
         assertEquals(expected, biddingStrategy.getTargetUtility(progress), EPSILON);
     }
 
@@ -135,7 +135,7 @@ public class Group42BiddingStrategyTest {
 
         biddingStrategy.setA();
         double expected = (0.99 - Math.pow((progress - biddingStrategy.getB()), biddingStrategy.getA()))
-                * biddingStrategy.getMax();
+                * (biddingStrategy.getMax() - biddingStrategy.getMin()) + biddingStrategy.getMin();
         assertEquals(expected, biddingStrategy.getTargetUtility(progress), EPSILON);
     }
 
